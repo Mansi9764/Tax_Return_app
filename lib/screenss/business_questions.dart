@@ -1,28 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-//import 'package:retail_tax_filing_app/screenss/PaymentService.dart';
-import 'package:retail_tax_filing_app/screenss/document_upload_screen.dart';
-import 'package:retail_tax_filing_app/screenss/payment_confirmation.dart';
-
+import 'package:flutter/material.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:retail_tax_filing_app/screenss/packages_new.dart';
+import 'package:retail_tax_filing_app/screenss/business_questions.dart'; // Import the business questions page
 import 'package:retail_tax_filing_app/screenss/payment_screen.dart';
-import 'package:retail_tax_filing_app/screenss/upload_success.dart'; // Import success page
+import 'package:retail_tax_filing_app/screenss/upload_success.dart'; 
 
-class QuestionnaireScreen extends StatefulWidget {
-  final Set<String> selectedPackages;
-
-
-  final VoidCallback onComplete;  // Correctly defining the onComplete callback
-
-  QuestionnaireScreen({required this.selectedPackages, required this.onComplete});
-
+class BusinessQuestionsPage extends StatefulWidget {
   @override
-  _QuestionnaireScreenState createState() => _QuestionnaireScreenState();
+  _BusinessQuestionsPageState createState() => _BusinessQuestionsPageState();
 }
 
-class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
+class _BusinessQuestionsPageState extends State<BusinessQuestionsPage> {
   final _formKey = GlobalKey<FormState>();
-
- 
 
   // Variables to hold user input
   String? fullName;
@@ -67,67 +58,26 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 
     'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
   ];
-  
-  var calculatedTotal = 0.1;
-  
-  
 
-void _submit() {
-  if (_formKey.currentState!.validate()) {
-    // Check if the widget is still mounted before proceeding
-    if (!mounted) return;
-
-    // Navigate based on selected package
-    if (widget.selectedPackages.contains('Business Filer')) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DocumentUploadScreen(
-            packageName: 'Business Filer',
-            remainingPackages: [], // No more packages after Business
-            selectedPackages: widget.selectedPackages,
-            onComplete: widget.onComplete,
-          ),
-        ),
+    void _submit() {
+    if (_formKey.currentState!.validate()) {
+      // Handle submission of business-specific questions
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Business Answers Submitted')),
       );
-    } else {
-      widget.onComplete();
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => PaymentsPage()),
-      // );
-
-      // Example of navigation after questionnaire completion
-        Navigator.push(
+      // Navigate to the PaymentsPage after form submission
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => PaymentPage()),
       );
     }
   }
-}
-
-
-
-
-
-
   @override
   Widget build(BuildContext context) {
-    String appBarTitle;
-    if (widget.selectedPackages.contains('Bronze - Individual Filer')) {
-      appBarTitle = 'Tax Questionnaire - Bronze';
-    } else if (widget.selectedPackages.contains('Silver - Individual Filer')) {
-      appBarTitle = 'Tax Questionnaire - Silver';
-    } else if (widget.selectedPackages.contains('Gold - Individual Filer')) {
-      appBarTitle = 'Tax Questionnaire - Gold';
-    } else {
-      appBarTitle = 'Business Questionnaire'; // Default title
-    }
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text(appBarTitle),
+        title: Text('Tax Questionnaire - Business'),
         backgroundColor: Color.fromARGB(255, 245, 209, 180),
         elevation: 0,
       ),
@@ -200,6 +150,7 @@ void _submit() {
       ),
     );
   }
+
   // Reusable Switch Builder
   Widget _buildSwitch(String label, bool value, Function(bool) onChanged) {
     return Row(
@@ -292,27 +243,6 @@ void _submit() {
           validator: (value) => value!.isEmpty ? 'Please enter your SSN' : null,
         ),
         SizedBox(height: 5),
-        //SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Date of Birth (MM/DD/YYYY)',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        keyboardType: TextInputType.datetime,
-                        // onChanged: (value) {
-                        //   setState(() {
-                        //     dependents[index]['dob'] = value;
-                        //   });
-                        // },
-                        validator: (value) => value!.isEmpty ? 'Please enter date of birth' : null,
-                      ),
-                      SizedBox(height: 15),
         DropdownButtonFormField<String>(
           value: filingStatus,
           decoration: InputDecoration(
@@ -462,23 +392,23 @@ void _submit() {
           });
         }),
         SizedBox(height: 5),
-        // MultiSelectDialogField(
-        //   items: incomeSources.map((source) => MultiSelectItem<String>(source, source)).toList(),
-        //   title: Text("Other Income Sources"),
-        //   selectedColor: Colors.orange[800],
-        //   decoration: BoxDecoration(
-        //     color: Colors.orange[50],
-        //     borderRadius: BorderRadius.all(Radius.circular(10)),
-        //     border: Border.all(color: Colors.orange[300]!, width: 1),
-        //   ),
-        //   buttonText: Text("Select Other Income", style: TextStyle(color: Colors.orange[800])),
-        //   onConfirm: (values) {
-        //     setState(() {
-        //       selectedIncomeSources = values;
-        //     });
-        //   },
-        //   // validator: (values) => values == null || values.isEmpty ? 'Please select at least one income source' : null,
-        // ),
+        MultiSelectDialogField(
+          items: incomeSources.map((source) => MultiSelectItem<String>(source, source)).toList(),
+          title: Text("Other Income Sources"),
+          selectedColor: Colors.orange[800],
+          decoration: BoxDecoration(
+            color: Colors.orange[50],
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            border: Border.all(color: Colors.orange[300]!, width: 1),
+          ),
+          buttonText: Text("Select Other Income", style: TextStyle(color: Colors.orange[800])),
+          onConfirm: (values) {
+            setState(() {
+              selectedIncomeSources = values;
+            });
+          },
+          validator: (values) => values == null || values.isEmpty ? 'Please select at least one income source' : null,
+        ),
         SizedBox(height: 15),
       ],
     );
@@ -599,7 +529,6 @@ void _submit() {
                         },
                         validator: (value) => value!.isEmpty ? 'Please enter SSN' : null,
                       ),
-                      
                       SizedBox(height: 5),
                       TextFormField(
                         decoration: InputDecoration(
@@ -634,23 +563,23 @@ void _submit() {
         }),
         
         SizedBox(height: 15),
-  //       MultiSelectDialogField(
-  //         items: contributionTypes.map((type) => MultiSelectItem<String>(type, type)).toList(),
-  //         title: Text("Contributions"),
-  //         selectedColor: Colors.orange[800],
-  //         decoration: BoxDecoration(
-  //           color: Colors.orange[50],
-  //           borderRadius: BorderRadius.all(Radius.circular(10)),
-  //           border: Border.all(color: Colors.orange[300]!, width: 1),
-  //         ),
-  //         buttonText: Text("Select Contributions", style: TextStyle(color: Colors.orange[800])),
-  //         onConfirm: (values) {
-  //           setState(() {
-  //             selectedContributions = values;
-  //           });
-  //         },
-  //         //validator: (values) => values == null || values.isEmpty ? 'Please select at least one contribution' : null,
-  //       ),
+        MultiSelectDialogField(
+          items: contributionTypes.map((type) => MultiSelectItem<String>(type, type)).toList(),
+          title: Text("Contributions"),
+          selectedColor: Colors.orange[800],
+          decoration: BoxDecoration(
+            color: Colors.orange[50],
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            border: Border.all(color: Colors.orange[300]!, width: 1),
+          ),
+          buttonText: Text("Select Contributions", style: TextStyle(color: Colors.orange[800])),
+          onConfirm: (values) {
+            setState(() {
+              selectedContributions = values;
+            });
+          },
+          validator: (values) => values == null || values.isEmpty ? 'Please select at least one contribution' : null,
+        ),
         SizedBox(height: 15),
       ],
       
@@ -713,7 +642,7 @@ void _submit() {
               selectedSpecialSituations = values;
             });
           },
-          //validator: (values) => values == null || values.isEmpty ? 'Please select at least one situation' : null,
+          validator: (values) => values == null || values.isEmpty ? 'Please select at least one situation' : null,
         ),
       ],
     );

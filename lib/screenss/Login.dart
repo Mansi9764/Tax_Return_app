@@ -1,4 +1,7 @@
+
 import 'package:flutter/material.dart';
+//import 'package:retail_tax_filing_app/screenss/package_selection.dart';
+import 'package:retail_tax_filing_app/screenss/packages_new.dart';
 import 'package:retail_tax_filing_app/screenss/questions.dart'; 
 import 'package:retail_tax_filing_app/screenss/sign_up.dart';
 
@@ -28,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => QuestionnaireScreen()), // Replace with your next screen
+          MaterialPageRoute(builder: (context) => PackageSelectionScreen()), // Replace with your next screen
         );
       });
     }
@@ -218,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         children: [
           Text(
-            "New to EasyTax?",
+            "New to ChauffeurX?",
             style: TextStyle(fontSize: 16),
           ),
           TextButton(
@@ -245,5 +248,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-
