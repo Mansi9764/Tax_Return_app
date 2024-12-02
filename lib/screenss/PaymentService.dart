@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:http/http.dart' as http;
+import 'package:retail_tax_filing_app/screenss/Payment_Success.dart';
 import 'package:retail_tax_filing_app/screenss/variables.dart';
 
 class PaymentPage extends StatefulWidget {
@@ -9,15 +11,28 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final String userSourceKey = 'checkout_public_hEM79u2M53q7cn-D569RGWRzEdk66BEPK'; // Replace with your tokenization key
-  //final String securityKey = 'your_security_key_here'; // Replace with your security key
-
   String cardNumber = '';
   String expiryDate = '';
+  String firstName = '';
+  String middleName = '';
+  String lastName = '';
   String cvvCode = '';
-  String cardHolderName = '';
-  bool isProcessing = false;
+  bool isCvvFocused = false;
+  String address1 = 'US'; 
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  void onCreditCardModelChange(CreditCardModel creditCardModel) {
+    setState(() {
+      cardNumber = creditCardModel.cardNumber;
+      expiryDate = creditCardModel.expiryDate;
+      firstName = creditCardModel.cardHolderName.split(' ')[0];
+      middleName = creditCardModel.cardHolderName.split(' ').length > 2 ? creditCardModel.cardHolderName.split(' ')[1] : '';
+      lastName = creditCardModel.cardHolderName.split(' ').last;
+      cvvCode = creditCardModel.cvvCode;
+      isCvvFocused = creditCardModel.isCvvFocused;
+    });
+    print('Updated card details: $firstName $middleName $lastName');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,221 +41,116 @@ class _PaymentPageState extends State<PaymentPage> {
         title: Text('Enter Payment Details'),
         centerTitle: true,
       ),
-      body: isProcessing ? _buildProcessingView() : _buildPaymentForm(),
-    );
-  }
-
-  Widget _buildProcessingView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 20),
-          Text('Processing Payment...', style: TextStyle(fontSize: 18)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentForm() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: formKey,
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Card Number',
-                hintText: '4111 1111 1111 1111',
-                border: OutlineInputBorder(),
+            CreditCardWidget(
+                cardNumber: cardNumber,
+                expiryDate: expiryDate,
+                cardHolderName: '$firstName ${middleName.isNotEmpty ? '$middleName ' : ''}$lastName'.trim(),
+                cvvCode: cvvCode,
+                showBackView: isCvvFocused,
+                height: 175,
+                width: MediaQuery.of(context).size.width,
+                animationDuration: Duration(milliseconds: 1000),
+                onCreditCardWidgetChange: (CreditCardBrand creditCardBrand) {
+                  // Handle the change in credit card brand here
+                  print('Detected credit card brand: $creditCardBrand');
+                },
               ),
-              keyboardType: TextInputType.number,
-              maxLength: 19,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Card number is required';
-                }
-                if (!isValidCardNumber(value.replaceAll(' ', ''))) {
-                  return 'Enter a valid card number';
-                }
-                return null;
-              },
-              onChanged: (value) => cardNumber = value,
+
+            CreditCardForm(
+              formKey: formKey,
+              onCreditCardModelChange: onCreditCardModelChange,
+              obscureCvv: true,
+              obscureNumber: true,
+              cardNumber: cardNumber,
+              expiryDate: expiryDate,
+              cardHolderName: '$firstName $middleName $lastName'.trim(),
+              cvvCode: cvvCode,
             ),
-            SizedBox(height: 10),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Expiry Date (MM/YY)',
-                hintText: '12/25',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.datetime,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Expiry date is required';
-                }
-                if (!isValidExpiryDate(value)) {
-                  return 'Enter a valid expiry date';
-                }
-                return null;
-              },
-              onChanged: (value) => expiryDate = value,
-            ),
-            SizedBox(height: 10),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'CVV',
-                hintText: '123',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-              maxLength: 3,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'CVV is required';
-                }
-                if (value.length != 3) {
-                  return 'CVV must be 3 digits';
-                }
-                return null;
-              },
-              onChanged: (value) => cvvCode = value,
-            ),
-            SizedBox(height: 10),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Cardholder Name',
-                hintText: 'John Doe',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.name,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Cardholder name is required';
-                }
-                return null;
-              },
-              onChanged: (value) => cardHolderName = value,
-            ),
-            SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _submitPayment,
+              onPressed: submitPayment,
               child: Text('Submit Payment'),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                foregroundColor: Colors.white, backgroundColor: Colors.blue,
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
-            ),
+            )
           ],
         ),
       ),
     );
   }
 
-  void _submitPayment() async {
-    if (formKey.currentState!.validate()) {
-      setState(() {
-        isProcessing = true;
-      });
+  void submitPayment() async {
+    const endpoint = 'https://secure.nmi.com/api/transact.php';
+    final headers = {
+      "accept": "application/x-www-form-urlencoded",
+      "content-type": "application/x-www-form-urlencoded"
+    };
 
-      try {
-        // Perform tokenization and payment processing here
-        final token = await _tokenizeCardDetails();
-        await _processPayment(token);
+    final Map<String, String> body = {
+      'security_key': security_key,
+      'type': 'sale',
+      'amount': '0.01',
+      'ccnumber': cardNumber.replaceAll(' ', ''),
+      'ccexp': expiryDate.replaceAll('/', ''),
+      'cvv': cvvCode,
+      'zip': '90815',
+      'first_name': firstName,
+      'last_name': lastName,
+      'middle_initial': middleName.isNotEmpty ? middleName[0] : '',
+      'address1': address1,
+    };
 
-        setState(() {
-          isProcessing = false;
-        });
+    print('Sending payment request: $body');
 
-        _showSuccessDialog();
-      } catch (e) {
-        setState(() {
-          isProcessing = false;
-        });
+    String encodedBody = body.keys
+        .map((key) => '$key=${Uri.encodeComponent(body[key]!)}')
+        .join('&');
 
-        _showErrorDialog(e.toString());
+    try {
+      final response = await http.post(Uri.parse(endpoint), headers: headers, body: encodedBody);
+      print('Received response: ${response.body}');
+      if (response.statusCode == 200) {
+        handleResponse(response.body);
+      } else {
+        throw Exception('Failed with status code: ${response.statusCode}');
       }
+    } catch (e) {
+      print('Payment error: $e');
+      handleError(e.toString());
     }
   }
 
-  // Future<String> _tokenizeCardDetails() async {
-  //   //const endpoint = 'https://secure.nmi.com/token/Collect.js';
-
-  //   // Here, mock the token for demonstration
-  //   return Future.delayed(Duration(seconds: 2), () => 'mock-token-123');
-  // }
-
-  Future<String> _tokenizeCardDetails() async {
-  //const endpoint = 'https://secure.nmi.com/api/tokenize.php';
-  const endpoint = 'https://secure.nmi.com/token/Collect.js';
-
-
-  final body = {
-    'source_key': userSourceKey, // Use the User Source Key provided by NMI
-    'ccnumber': cardNumber.replaceAll(' ', ''), // Clean card number of spaces
-    'ccexp': expiryDate.replaceAll('/', ''), // Format MMYY
-    'cvv': cvvCode,
-  };
-
-  try {
-    final response = await http.post(
-      Uri.parse(endpoint),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: body,
+  void handleResponse(String responseBody) {
+  print('Processing response: $responseBody');
+  var decoded = Uri.splitQueryString(responseBody);
+  if (decoded['response'] == '1') {
+    String transactionId = decoded['transactionid'] ?? 'N/A';
+    print('Payment successful: Transaction ID $transactionId');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentSuccessPage(transactionId: transactionId),
+      ),
     );
-
-    if (response.statusCode == 200) {
-      final responseData = Uri.splitQueryString(response.body);
-      if (responseData.containsKey('token')) {
-        return responseData['token']!;
-      } else {
-        throw Exception('Tokenization failed: ${responseData['responsetext']}');
-      }
-    } else {
-      throw Exception('Tokenization failed with status: ${response.statusCode}');
-    }
-  } catch (e) {
-    throw Exception('Error during tokenization: $e');
+  } else {
+    print('Payment failed: ${decoded['responsetext']}');
+    handleError('Payment failed: ${decoded['responsetext']}');
   }
 }
 
 
-  Future<void> _processPayment(String token) async {
-    const endpoint = 'https://secure.nmi.com/api/transact.php';
-
-    final body = {
-      'security_key': security_key,
-      'type': 'sale',
-      'amount': '0.01',
-      'payment_token': token,
-    };
-
-    final response = await http.post(
-      Uri.parse(endpoint),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: body,
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Payment failed with status: ${response.statusCode}');
-    }
-
-    final result = Uri.splitQueryString(response.body);
-    if (result['response_code'] != '100') {
-      throw Exception(result['responsetext'] ?? 'Payment failed');
-    }
-  }
-
-  void _showSuccessDialog() {
+  void handleError(String error) {
+    print('Error: $error');
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Payment Successful'),
-        content: Text('Your transaction was successful!'),
-        actions: [
+        title: Text('Payment Error'),
+        content: Text(error),
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text('OK'),
@@ -248,58 +158,5 @@ class _PaymentPageState extends State<PaymentPage> {
         ],
       ),
     );
-  }
-
-  void _showErrorDialog(String errorMessage) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Payment Failed'),
-        content: Text(errorMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  bool isValidCardNumber(String cardNumber) {
-    // Luhn Algorithm for card number validation
-    int sum = 0;
-    bool alternate = false;
-
-    for (int i = cardNumber.length - 1; i >= 0; i--) {
-      int digit = int.parse(cardNumber[i]);
-
-      if (alternate) {
-        digit *= 2;
-        if (digit > 9) digit -= 9;
-      }
-
-      sum += digit;
-      alternate = !alternate;
-    }
-
-    return sum % 10 == 0;
-  }
-
-  bool isValidExpiryDate(String expiryDate) {
-    final now = DateTime.now();
-    final parts = expiryDate.split('/');
-
-    if (parts.length != 2) return false;
-
-    final month = int.tryParse(parts[0]);
-    final year = int.tryParse('20${parts[1]}');
-
-    if (month == null || year == null) return false;
-    if (month < 1 || month > 12) return false;
-
-    final expiry = DateTime(year, month);
-
-    return expiry.isAfter(now);
   }
 }

@@ -1,8 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-
 import 'package:retail_tax_filing_app/screenss/variables.dart';
 
 class PaymentPage extends StatefulWidget {
@@ -13,19 +12,24 @@ class PaymentPage extends StatefulWidget {
 class _PaymentPageState extends State<PaymentPage> {
   String cardNumber = '';
   String expiryDate = '';
-  String cardHolderName = '';
+  String firstName = '';
+  String middleName = '';
+  String lastName = '';
   String cvvCode = '';
   bool isCvvFocused = false;
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  
   void onCreditCardModelChange(CreditCardModel creditCardModel) {
     setState(() {
       cardNumber = creditCardModel.cardNumber;
       expiryDate = creditCardModel.expiryDate;
-      cardHolderName = creditCardModel.cardHolderName;
+      firstName = creditCardModel.cardHolderName.split(' ')[0];
+      middleName = creditCardModel.cardHolderName.split(' ').length > 2 ? creditCardModel.cardHolderName.split(' ')[1] : '';
+      lastName = creditCardModel.cardHolderName.split(' ').last;
       cvvCode = creditCardModel.cvvCode;
       isCvvFocused = creditCardModel.isCvvFocused;
     });
+    print('Updated card details: $firstName $middleName $lastName');
   }
 
   @override
@@ -39,35 +43,35 @@ class _PaymentPageState extends State<PaymentPage> {
         child: Column(
           children: [
             CreditCardWidget(
+                cardNumber: cardNumber,
+                expiryDate: expiryDate,
+                cardHolderName: '$firstName ${middleName.isNotEmpty ? '$middleName ' : ''}$lastName'.trim(),
+                cvvCode: cvvCode,
+                showBackView: isCvvFocused,
+                height: 175,
+                width: MediaQuery.of(context).size.width,
+                animationDuration: Duration(milliseconds: 1000),
+                onCreditCardWidgetChange: (CreditCardBrand creditCardBrand) {
+                  // Handle the change in credit card brand here
+                  print('Detected credit card brand: $creditCardBrand');
+                },
+              ),
+
+            CreditCardForm(
+              formKey: formKey,
+              onCreditCardModelChange: onCreditCardModelChange,
+              obscureCvv: true,
+              obscureNumber: true,
               cardNumber: cardNumber,
               expiryDate: expiryDate,
-              cardHolderName: cardHolderName,
+              cardHolderName: '$firstName $middleName $lastName'.trim(),
               cvvCode: cvvCode,
-              showBackView: isCvvFocused,
-              height: 175,
-              width: MediaQuery.of(context).size.width,
-              animationDuration: Duration(milliseconds: 1000),
-              onCreditCardWidgetChange: (CreditCardBrand) {},
             ),
- CreditCardForm(
-  formKey: GlobalKey<FormState>(),  // Global key to uniquely identify the form
-  onCreditCardModelChange: onCreditCardModelChange,  // Callback when form fields change
-  cardNumber: cardNumber,  // Binding the state-managed card number
-  expiryDate: expiryDate,  // Binding the state-managed expiry date
-  cardHolderName: cardHolderName,  // Binding the state-managed card holder's name
-  cvvCode: cvvCode,  // Binding the state-managed CVV code
-  //: Colors.blue,  // You can still set a theme color if this is supported
-  obscureCvv: true,  // Optionally obscure the CVV input
-  obscureNumber: true,  // Optionally obscure the card number input
-),
-
-
-ElevatedButton(
+            ElevatedButton(
               onPressed: submitPayment,
               child: Text('Submit Payment'),
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white, backgroundColor: Colors.blue,
                 padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
             )
@@ -78,62 +82,76 @@ ElevatedButton(
   }
 
   void submitPayment() async {
-    final endpoint = 'https://secure.nmi.com/api/transact.php'; // NMI Endpoint
+    const endpoint = 'https://secure.nmi.com/api/transact.php';
     final headers = {
-      'Accept': 'application/x-www-form-urlencoded',
-      'Content-Type': 'application/x-www-form-urlencoded',
-    };
+    "accept": "application/x-www-form-urlencoded",
+    "content-type": "application/x-www-form-urlencoded"
+  };
 
-    final body = {
+    final Map<String, String> body = {
       'security_key': security_key,
       'type': 'sale',
       'amount': '0.01',
       'ccnumber': cardNumber.replaceAll(' ', ''),
       'ccexp': expiryDate.replaceAll('/', ''),
       'cvv': cvvCode,
+      //'zip': '90815',
+      'first_name': firstName,
+      'last_name': lastName,
+      'middle_initial': middleName.isNotEmpty ? middleName[0] : '',
     };
 
-    String encodedBody = body.keys.map((key) => '$key=${Uri.encodeComponent(body[key]!)}').join('&');
+    print('Sending payment request: $body');
+
+    String encodedBody = body.keys
+        .map((key) => '$key=${Uri.encodeComponent(body[key]!)}')
+        .join('&');
 
     try {
       final response = await http.post(Uri.parse(endpoint), headers: headers, body: encodedBody);
+      print('Received response: ${response.body}');
       if (response.statusCode == 200) {
-        var parsedResponse = Uri.splitQueryString(response.body);
-        if (parsedResponse['response_code'] == '100') {
-          handleSuccess(parsedResponse);
-        } else {
-          throw Exception('Failed to process payment: ${parsedResponse['responsetext']}');
-        }
+        handleResponse(response.body);
       } else {
         throw Exception('Failed with status code: ${response.statusCode}');
       }
     } catch (e) {
-      handleError(e);
+      print('Payment error: $e');
+      handleError(e.toString());
     }
   }
 
-  void handleSuccess(Map<String, String> response) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Payment Successful'),
-        content: Text('Transaction ID: ${response['transactionid']}'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
+  void handleResponse(String responseBody) {
+    print('Processing response: $responseBody');
+    var decoded = Uri.splitQueryString(responseBody);
+    if (decoded['response'] == '1') {
+      print('Payment successful: Transaction ID ${decoded['transactionid']}');
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Payment Successful'),
+          content: Text('Transaction ID: ${decoded['transactionid']}'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      print('Payment failed: ${decoded['responsetext']}');
+      handleError('Payment failed: ${decoded['responsetext']}');
+    }
   }
 
-  void handleError(dynamic error) {
+  void handleError(String error) {
+    print('Error: $error');
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Payment Error'),
-        content: Text(error.toString()),
+        content: Text(error),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
