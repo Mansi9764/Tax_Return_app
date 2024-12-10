@@ -107,10 +107,6 @@ void _submit() {
 }
 
 
-
-
-
-
   @override
   Widget build(BuildContext context) {
     String appBarTitle;
@@ -159,7 +155,12 @@ void _submit() {
                   // Spouse Info Section (conditionally displayed)
                   _buildSpouseInfoSection(),
                   SizedBox(height: 15),
-                  // Income Info Section
+
+                  //adding extra
+                  _buildSpouseInfoSeparatelySection(),
+                  SizedBox(height: 15),
+
+                  // Income Info SectionFjointlt
                   _buildIncomeInfoSection(),
                   SizedBox(height: 15),
                   // Deductions & Credits Section
@@ -441,6 +442,205 @@ void _submit() {
     );
   }
 
+  // Spouse Info Section (conditionally displayed for Married Filing Separately)
+Widget _buildSpouseInfoSeparatelySection() {
+  return Visibility(
+    visible: filingStatus == 'Married Filing Separately',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Spouse Information (Separate Filing)",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        SizedBox(height: 10),
+        TextFormField(
+          decoration: InputDecoration(
+            labelText: 'Spouse First Name',
+            labelStyle: TextStyle(color: Colors.orange[800]),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.orange[300]!),
+            ),
+            filled: true,
+            fillColor: Colors.orange[50],
+            contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+          ),
+          onChanged: (value) {
+            setState(() {
+              spouseFirstName = value;
+            });
+          },
+          validator: (value) => value!.isEmpty ? 'Please enter spouse first name' : null,
+        ),
+        SizedBox(height: 5),
+        TextFormField(
+          decoration: InputDecoration(
+            labelText: 'Spouse Last Name',
+            labelStyle: TextStyle(color: Colors.orange[800]),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.orange[300]!),
+            ),
+            filled: true,
+            fillColor: Colors.orange[50],
+            contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+          ),
+          onChanged: (value) {
+            setState(() {
+              spouseLastName = value;
+            });
+          },
+          validator: (value) => value!.isEmpty ? 'Please enter spouse last name' : null,
+        ),
+        SizedBox(height: 5),
+        TextFormField(
+          decoration: InputDecoration(
+            labelText: 'Spouse SSN',
+            labelStyle: TextStyle(color: Colors.orange[800]),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.orange[300]!),
+            ),
+            filled: true,
+            fillColor: Colors.orange[50],
+            contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+          ),
+          keyboardType: TextInputType.number,
+          obscureText: true,
+          onChanged: (value) {
+            setState(() {
+              spouseSSN = value;
+            });
+          },
+          validator: (value) => value!.isEmpty ? 'Please enter spouse SSN' : null,
+        ),
+        SizedBox(height: 5),
+        TextFormField(
+          decoration: InputDecoration(
+            labelText: 'Spouse Date of Birth (MM/DD/YYYY)',
+            labelStyle: TextStyle(color: Colors.orange[800]),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.orange[300]!),
+            ),
+            filled: true,
+            fillColor: Colors.orange[50],
+            contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+          ),
+          keyboardType: TextInputType.datetime,
+          onChanged: (value) {
+            setState(() {
+              spouseDOB = value;
+            });
+          },
+          validator: (value) => value!.isEmpty ? 'Please enter spouse date of birth' : null,
+        ),
+      ],
+    ),
+  );
+}
+
+
+  Widget _buildSpouseInfo2Section() {
+    return Visibility(
+      visible: filingStatus == 'Married Filing Separately',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Spouse Information",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          SizedBox(height: 10),
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'Spouse First Name',
+              labelStyle: TextStyle(color: Colors.orange[800]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.orange[300]!),
+              ),
+              filled: true,
+              fillColor: Colors.orange[50],
+              contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+            ),
+            onChanged: (value) {
+              setState(() {
+                spouseFirstName = value;
+              });
+            },
+            validator: (value) => value!.isEmpty ? 'Please enter spouse first name' : null,
+          ),
+          SizedBox(height: 5),
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'Spouse Last Name',
+              labelStyle: TextStyle(color: Colors.orange[800]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.orange[300]!),
+              ),
+              filled: true,
+              fillColor: Colors.orange[50],
+              contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+            ),
+            onChanged: (value) {
+              setState(() {
+                spouseLastName = value;
+              });
+            },
+            validator: (value) => value!.isEmpty ? 'Please enter spouse last name' : null,
+          ),
+          SizedBox(height: 5),
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'Spouse SSN',
+              labelStyle: TextStyle(color: Colors.orange[800]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.orange[300]!),
+              ),
+              filled: true,
+              fillColor: Colors.orange[50],
+              contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+            ),
+            keyboardType: TextInputType.number,
+            obscureText: true,
+            onChanged: (value) {
+              setState(() {
+                spouseSSN = value;
+              });
+            },
+            validator: (value) => value!.isEmpty ? 'Please enter spouse SSN' : null,
+          ),
+          SizedBox(height: 5),
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'Spouse Date of Birth (MM/DD/YYYY)',
+              labelStyle: TextStyle(color: Colors.orange[800]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.orange[300]!),
+              ),
+              filled: true,
+              fillColor: Colors.orange[50],
+              contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+            ),
+            keyboardType: TextInputType.datetime,
+            onChanged: (value) {
+              setState(() {
+                spouseDOB = value;
+              });
+            },
+            validator: (value) => value!.isEmpty ? 'Please enter spouse date of birth' : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Widget _buildIncomeInfoSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,6 +685,11 @@ void _submit() {
   }
 
   Widget _buildDeductionsCreditsSection() {
+
+    final List<String> relationships = [
+    'Child', 'Spouse', 'Parent', 'Sibling', 'Other'
+  ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -524,7 +729,8 @@ void _submit() {
                           'firstName': '',
                           'lastName': '',
                           'ssn': '',
-                          'dob': ''
+                          'dob': '',
+                          'relationship': 'Child',
                         });
                   });
                 },
@@ -620,12 +826,42 @@ void _submit() {
                         },
                         validator: (value) => value!.isEmpty ? 'Please enter date of birth' : null,
                       ),
-                    ],
-                  );
-                }),
-            ],
+                      SizedBox(height: 5),
+                    DropdownButtonFormField<String>(
+                      value: dependents[index]['relationship'],
+                      decoration: InputDecoration(
+                        labelText: 'Relationship',
+                        labelStyle: TextStyle(color: Colors.orange[800]),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.orange[300]!),
+                        ),
+                        filled: true,
+                        fillColor: Colors.orange[50],
+                      ),
+                      items: relationships.map((relationship) {
+                        return DropdownMenuItem(
+                          value: relationship,
+                          child: Text(relationship),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          dependents[index]['relationship'] = value!;
+                        });
+                      },
+                      validator: (value) => value == null ? 'Please select a relationship' : null,
+                    ),
+                    SizedBox(height: 15),
+                  ],
+                );
+              }),
+          ],
           ),
-        
+//       SizedBox(height: 15),
+//     ],
+//   );
+// }
         SizedBox(height: 15),
         _buildSwitch('Eligible for tax credits (Child Tax, EITC, Education)?', eligibleTaxCredits, (value) {
           setState(() {

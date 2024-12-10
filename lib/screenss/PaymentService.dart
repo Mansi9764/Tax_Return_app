@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:http/http.dart' as http;
 import 'package:retail_tax_filing_app/screenss/Payment_Success.dart';
+import 'package:retail_tax_filing_app/screenss/payment_error.dart';
 import 'package:retail_tax_filing_app/screenss/variables.dart';
 
 class PaymentPage extends StatefulWidget {
@@ -143,20 +144,33 @@ class _PaymentPageState extends State<PaymentPage> {
 }
 
 
-  void handleError(String error) {
-    print('Error: $error');
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Payment Error'),
-        content: Text(error),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
+//   void handleError(String error) {
+//     print('Error: $error');
+//     showDialog(
+//       context: context,
+//       builder: (context) => AlertDialog(
+//         title: Text('Payment Error'),
+//         content: Text(error),
+//         actions: <Widget>[
+//           TextButton(
+//             onPressed: () => Navigator.of(context).pop(),
+//             child: Text('OK'),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+void handleError(String error) {
+  String userFriendlyError = error.contains('Do Not Honor')
+      ? 'Your bank declined the transaction. Please contact your bank or try another payment method.'
+      : error;
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PaymentErrorPage(error: userFriendlyError),
+    ),
+  );
+}
 }

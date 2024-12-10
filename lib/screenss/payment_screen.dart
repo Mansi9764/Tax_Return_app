@@ -91,7 +91,7 @@ class _PaymentPageState extends State<PaymentPage> {
     final Map<String, String> body = {
       'security_key': security_key,
       'type': 'sale',
-      'amount': '0.01',
+      'amount': '0.02',
       'ccnumber': cardNumber.replaceAll(' ', ''),
       'ccexp': expiryDate.replaceAll('/', ''),
       'cvv': cvvCode,
