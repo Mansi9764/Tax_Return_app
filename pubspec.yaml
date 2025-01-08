@@ -18,13 +18,15 @@ dependencies:
   shared_preferences: ^2.0.15 # For storing user data locally
   flutter_secure_storage: ^5.0.2 # For secure storage of sensitive information
   intl: ^0.18.1 # For date and currency formatting
-  firebase_auth: ^4.16.0 # Optional: For authentication
-  firebase_core: ^2.16.1 # Optional: Firebase integration
+  firebase_auth: 
+  firebase_core: 
   file_picker: ^8.1.2
   multi_select_flutter: ^4.0.0
   flutter_form_builder: 
   flutter_credit_card:
   flutter_inappwebview: ^6.0.0
+  image_picker: ^0.8.5+3 
+  
   
 
 

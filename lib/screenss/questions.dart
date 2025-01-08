@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:retail_tax_filing_app/screenss/Licence_page.dart';
 import 'package:retail_tax_filing_app/screenss/PaymentService.dart';
 import 'package:retail_tax_filing_app/screenss/document_upload_screen.dart';
 import 'package:retail_tax_filing_app/screenss/Payment_Success.dart';
@@ -47,6 +48,8 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
   List<String> selectedSpecialSituations = [];
   String? selectedState;
   bool paidStateTaxes = false;
+  String? dependentsType = 'Children';  
+
 
   final List<String> filingStatuses = [
     'Single',
@@ -100,7 +103,7 @@ void _submit() {
       // Example of navigation after questionnaire completion
         Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => PaymentPage()),
+        MaterialPageRoute(builder: (context) => LicenseUploadPage()),
       );
     }
   }
@@ -684,149 +687,284 @@ Widget _buildSpouseInfoSeparatelySection() {
     );
   }
 
-  Widget _buildDeductionsCreditsSection() {
+//   Widget _buildDeductionsCreditsSection() {
 
-    final List<String> relationships = [
+//     final List<String> relationships = [
+//     'Child', 'Spouse', 'Parent', 'Sibling', 'Other'
+//   ];
+
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text(
+//           "3. Deductions & Credits",
+//           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+//         ),
+//         SizedBox(height: 5),
+//         _buildSwitch('Are you claiming dependents?', hasDependents, (value) {
+//           setState(() {
+//             hasDependents = value;
+//             if (!hasDependents) {
+//               dependentsCount = null;
+//               dependents.clear();
+//             }
+//           });
+//         }),
+//         if (hasDependents)
+//           Column(
+//             children: [
+//               TextFormField(
+//                 decoration: InputDecoration(
+//                   labelText: 'How many dependents?',
+//                   labelStyle: TextStyle(color: Colors.orange[800]),
+//                   border: OutlineInputBorder(
+//                     borderRadius: BorderRadius.circular(10),
+//                     borderSide: BorderSide(color: Colors.orange[300]!),
+//                   ),
+//                   filled: true,
+//                   fillColor: Colors.orange[50],
+//                 ),
+//                 keyboardType: TextInputType.number,
+//                 onChanged: (value) {
+//                   setState(() {
+//                     dependentsCount = int.tryParse(value) ?? 0;
+//                     dependents = List.generate(dependentsCount!, (_) => {
+//                           'firstName': '',
+//                           'lastName': '',
+//                           'ssn': '',
+//                           'dob': '',
+//                           'relationship': 'Child',
+//                         });
+//                   });
+//                 },
+//               ),
+//               SizedBox(height: 5),
+//               if (dependentsCount != null && dependentsCount! > 0)
+//                 ...List.generate(dependentsCount!, (index) {
+//                   return Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       SizedBox(height: 10),
+//                       Text(
+//                         "Dependent ${index + 1}",
+//                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//                       ),
+//                       SizedBox(height: 5),
+//                       TextFormField(
+//                         decoration: InputDecoration(
+//                           labelText: 'First Name',
+//                           labelStyle: TextStyle(color: Colors.orange[800]),
+//                           border: OutlineInputBorder(
+//                             borderRadius: BorderRadius.circular(10),
+//                             borderSide: BorderSide(color: Colors.orange[300]!),
+//                           ),
+//                           filled: true,
+//                           fillColor: Colors.orange[50],
+//                         ),
+//                         onChanged: (value) {
+//                           setState(() {
+//                             dependents[index]['firstName'] = value;
+//                           });
+//                         },
+//                         validator: (value) => value!.isEmpty ? 'Please enter first name' : null,
+//                       ),
+//                       SizedBox(height: 5),
+//                       TextFormField(
+//                         decoration: InputDecoration(
+//                           labelText: 'Last Name',
+//                           labelStyle: TextStyle(color: Colors.orange[800]),
+//                           border: OutlineInputBorder(
+//                             borderRadius: BorderRadius.circular(10),
+//                             borderSide: BorderSide(color: Colors.orange[300]!),
+//                           ),
+//                           filled: true,
+//                           fillColor: Colors.orange[50],
+//                         ),
+//                         onChanged: (value) {
+//                           setState(() {
+//                             dependents[index]['lastName'] = value;
+//                           });
+//                         },
+//                         validator: (value) => value!.isEmpty ? 'Please enter last name' : null,
+//                       ),
+//                       SizedBox(height: 5),
+//                       TextFormField(
+//                         decoration: InputDecoration(
+//                           labelText: 'SSN',
+//                           labelStyle: TextStyle(color: Colors.orange[800]),
+//                           border: OutlineInputBorder(
+//                             borderRadius: BorderRadius.circular(10),
+//                             borderSide: BorderSide(color: Colors.orange[300]!),
+//                           ),
+//                           filled: true,
+//                           fillColor: Colors.orange[50],
+//                         ),
+//                         keyboardType: TextInputType.number,
+//                         obscureText: true,
+//                         onChanged: (value) {
+//                           setState(() {
+//                             dependents[index]['ssn'] = value;
+//                           });
+//                         },
+//                         validator: (value) => value!.isEmpty ? 'Please enter SSN' : null,
+//                       ),
+                      
+//                       SizedBox(height: 5),
+//                       TextFormField(
+//                         decoration: InputDecoration(
+//                           labelText: 'Date of Birth (MM/DD/YYYY)',
+//                           labelStyle: TextStyle(color: Colors.orange[800]),
+//                           border: OutlineInputBorder(
+//                             borderRadius: BorderRadius.circular(10),
+//                             borderSide: BorderSide(color: Colors.orange[300]!),
+//                           ),
+//                           filled: true,
+//                           fillColor: Colors.orange[50],
+//                         ),
+//                         keyboardType: TextInputType.datetime,
+//                         onChanged: (value) {
+//                           setState(() {
+//                             dependents[index]['dob'] = value;
+//                           });
+//                         },
+//                         validator: (value) => value!.isEmpty ? 'Please enter date of birth' : null,
+//                       ),
+//                       SizedBox(height: 5),
+//                     DropdownButtonFormField<String>(
+//                       value: dependents[index]['relationship'],
+//                       decoration: InputDecoration(
+//                         labelText: 'Relationship',
+//                         labelStyle: TextStyle(color: Colors.orange[800]),
+//                         border: OutlineInputBorder(
+//                           borderRadius: BorderRadius.circular(10),
+//                           borderSide: BorderSide(color: Colors.orange[300]!),
+//                         ),
+//                         filled: true,
+//                         fillColor: Colors.orange[50],
+//                       ),
+//                       items: relationships.map((relationship) {
+//                         return DropdownMenuItem(
+//                           value: relationship,
+//                           child: Text(relationship),
+//                         );
+//                       }).toList(),
+//                       onChanged: (value) {
+//                         setState(() {
+//                           dependents[index]['relationship'] = value!;
+//                         });
+//                       },
+//                       validator: (value) => value == null ? 'Please select a relationship' : null,
+//                     ),
+//                     SizedBox(height: 15),
+//                   ],
+//                 );
+//               }),
+//           ],
+//           ),
+// //       SizedBox(height: 15),
+// //     ],
+// //   );
+// // }
+//         SizedBox(height: 15),
+//         _buildSwitch('Eligible for tax credits (Child Tax, EITC, Education)?', eligibleTaxCredits, (value) {
+//           setState(() {
+//             eligibleTaxCredits = value;
+//           });
+//         }),
+        
+//         SizedBox(height: 15),
+//   //       MultiSelectDialogField(
+//   //         items: contributionTypes.map((type) => MultiSelectItem<String>(type, type)).toList(),
+//   //         title: Text("Contributions"),
+//   //         selectedColor: Colors.orange[800],
+//   //         decoration: BoxDecoration(
+//   //           color: Colors.orange[50],
+//   //           borderRadius: BorderRadius.all(Radius.circular(10)),
+//   //           border: Border.all(color: Colors.orange[300]!, width: 1),
+//   //         ),
+//   //         buttonText: Text("Select Contributions", style: TextStyle(color: Colors.orange[800])),
+//   //         onConfirm: (values) {
+//   //           setState(() {
+//   //             selectedContributions = values;
+//   //           });
+//   //         },
+//   //         //validator: (values) => values == null || values.isEmpty ? 'Please select at least one contribution' : null,
+//   //       ),
+//         SizedBox(height: 15),
+//       ],
+      
+//     );
+//   }
+
+
+Widget _buildDeductionsCreditsSection() {
+  final List<String> relationships = [
     'Child', 'Spouse', 'Parent', 'Sibling', 'Other'
   ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "3. Deductions & Credits",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        SizedBox(height: 5),
-        _buildSwitch('Are you claiming dependents?', hasDependents, (value) {
-          setState(() {
-            hasDependents = value;
-            if (!hasDependents) {
-              dependentsCount = null;
-              dependents.clear();
-            }
-          });
-        }),
-        if (hasDependents)
-          Column(
-            children: [
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'How many dependents?',
-                  labelStyle: TextStyle(color: Colors.orange[800]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.orange[300]!),
-                  ),
-                  filled: true,
-                  fillColor: Colors.orange[50],
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "3. Deductions & Credits",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+      ),
+      SizedBox(height: 20), // Increased spacing
+      _buildSwitch('Are you claiming dependents?', hasDependents, (value) {
+        setState(() {
+          hasDependents = value;
+          if (!hasDependents) {
+            dependentsCount = null;
+            dependents.clear();
+          }
+        });
+      }),
+      if (hasDependents)
+        Column(
+          children: [
+            SizedBox(height: 20), // Increased spacing
+            TextFormField(
+              decoration: InputDecoration(
+                labelText: 'How many dependents?',
+                labelStyle: TextStyle(color: Colors.orange[800]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.orange[300]!),
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  setState(() {
-                    dependentsCount = int.tryParse(value) ?? 0;
-                    dependents = List.generate(dependentsCount!, (_) => {
-                          'firstName': '',
-                          'lastName': '',
-                          'ssn': '',
-                          'dob': '',
-                          'relationship': 'Child',
-                        });
-                  });
-                },
+                filled: true,
+                fillColor: Colors.orange[50],
               ),
-              SizedBox(height: 5),
-              if (dependentsCount != null && dependentsCount! > 0)
-                ...List.generate(dependentsCount!, (index) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 10),
-                      Text(
-                        "Dependent ${index + 1}",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'First Name',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            dependents[index]['firstName'] = value;
-                          });
-                        },
-                        validator: (value) => value!.isEmpty ? 'Please enter first name' : null,
-                      ),
-                      SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Last Name',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            dependents[index]['lastName'] = value;
-                          });
-                        },
-                        validator: (value) => value!.isEmpty ? 'Please enter last name' : null,
-                      ),
-                      SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'SSN',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        keyboardType: TextInputType.number,
-                        obscureText: true,
-                        onChanged: (value) {
-                          setState(() {
-                            dependents[index]['ssn'] = value;
-                          });
-                        },
-                        validator: (value) => value!.isEmpty ? 'Please enter SSN' : null,
-                      ),
-                      
-                      SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Date of Birth (MM/DD/YYYY)',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        keyboardType: TextInputType.datetime,
-                        onChanged: (value) {
-                          setState(() {
-                            dependents[index]['dob'] = value;
-                          });
-                        },
-                        validator: (value) => value!.isEmpty ? 'Please enter date of birth' : null,
-                      ),
-                      SizedBox(height: 5),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                setState(() {
+                  dependentsCount = int.tryParse(value) ?? 0;
+                  dependents = List.generate(dependentsCount!, (_) => {
+                    'firstName': '',
+                    'lastName': '',
+                    'ssn': '',
+                    'dob': '',
+                    'relationship': 'Child', // Default relationship
+                    'otherDetails': '', // Extra field for 'Other' details
+                  });
+                });
+              },
+            ),
+            SizedBox(height: 20), // Increased spacing
+            if (dependentsCount != null && dependentsCount! > 0)
+              ...List.generate(dependentsCount!, (index) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20), // Increased spacing
+                    Text("Dependent ${index + 1}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    _dependentFormField('First Name', index, 'firstName'),
+                    SizedBox(height: 10), // Increased spacing between form fields
+                    _dependentFormField('Last Name', index, 'lastName'),
+                    SizedBox(height: 10), // Increased spacing
+                    _dependentFormField('SSN', index, 'ssn', isNumber: true, obscureText: true),
+                    SizedBox(height: 10), // Increased spacing
+                    _dependentFormField('Date of Birth (MM/DD/YYYY)', index, 'dob'),
+                    SizedBox(height: 10), // Increased spacing
                     DropdownButtonFormField<String>(
                       value: dependents[index]['relationship'],
                       decoration: InputDecoration(
@@ -848,50 +986,81 @@ Widget _buildSpouseInfoSeparatelySection() {
                       onChanged: (value) {
                         setState(() {
                           dependents[index]['relationship'] = value!;
+                          if (value != 'Other') {
+                            dependents[index]['otherDetails'] = ''; // Clear 'other' details if not 'Other'
+                          }
                         });
                       },
                       validator: (value) => value == null ? 'Please select a relationship' : null,
                     ),
-                    SizedBox(height: 15),
+                    if (dependents[index]['relationship'] == 'Other') ...[
+                      SizedBox(height: 10), // Increased spacing
+                      TextFormField(
+                        key: ValueKey(index),  // Ensure unique key for rebuild
+                        decoration: InputDecoration(
+                          labelText: 'Details for Other',
+                          labelStyle: TextStyle(color: Colors.orange[800]),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.orange[300]!),
+                          ),
+                          filled: true,
+                          fillColor: Colors.orange[50],
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            dependents[index]['otherDetails'] = value;
+                          });
+                        },
+                        validator: (value) => value!.isEmpty ? 'Please enter details for other' : null,
+                      ),
+                      SizedBox(height: 20), // Increased spacing
+                    ],
                   ],
                 );
               }),
           ],
-          ),
-//       SizedBox(height: 15),
-//     ],
-//   );
-// }
-        SizedBox(height: 15),
-        _buildSwitch('Eligible for tax credits (Child Tax, EITC, Education)?', eligibleTaxCredits, (value) {
-          setState(() {
-            eligibleTaxCredits = value;
-          });
-        }),
-        
-        SizedBox(height: 15),
-  //       MultiSelectDialogField(
-  //         items: contributionTypes.map((type) => MultiSelectItem<String>(type, type)).toList(),
-  //         title: Text("Contributions"),
-  //         selectedColor: Colors.orange[800],
-  //         decoration: BoxDecoration(
-  //           color: Colors.orange[50],
-  //           borderRadius: BorderRadius.all(Radius.circular(10)),
-  //           border: Border.all(color: Colors.orange[300]!, width: 1),
-  //         ),
-  //         buttonText: Text("Select Contributions", style: TextStyle(color: Colors.orange[800])),
-  //         onConfirm: (values) {
-  //           setState(() {
-  //             selectedContributions = values;
-  //           });
-  //         },
-  //         //validator: (values) => values == null || values.isEmpty ? 'Please select at least one contribution' : null,
-  //       ),
-        SizedBox(height: 15),
-      ],
-      
-    );
-  }
+        ),
+      _buildSwitch('Eligible for tax credits (Child Tax, EITC, Education)?', eligibleTaxCredits, (value) {
+        setState(() {
+          eligibleTaxCredits = value;
+        });
+      }),
+      SizedBox(height: 20), // Increased spacing
+    ],
+  );
+}
+
+Widget _dependentFormField(String labelText, int index, String field, {bool isNumber = false, bool obscureText = false}) {
+  return TextFormField(
+    key: ValueKey('$field-$index'),  // Ensure the field is properly keyed for state updates
+    decoration: InputDecoration(
+      labelText: labelText,
+      labelStyle: TextStyle(color: Colors.orange[800]),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.orange[300]!),
+      ),
+      filled: true,
+      fillColor: Colors.orange[50],
+      contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Increased padding within form fields
+    ),
+    keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+    obscureText: obscureText,
+    initialValue: dependents[index][field],
+    onChanged: (value) {
+      setState(() {
+        dependents[index][field] = value;
+      });
+    },
+    validator: (value) => value!.isEmpty ? 'Please enter $labelText' : null,
+  );
+}
+
+
+
+
+
 
   Widget _buildPaymentsRefundsSection() {
     return Column(

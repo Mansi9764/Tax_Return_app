@@ -38,6 +38,8 @@ class _BusinessQuestionsPageState extends State<BusinessQuestionsPage> {
   List<String> selectedSpecialSituations = [];
   String? selectedState;
   bool paidStateTaxes = false;
+  String? dependentsType;
+
 
   final List<String> filingStatuses = [
     'Single',
@@ -177,7 +179,7 @@ class _BusinessQuestionsPageState extends State<BusinessQuestionsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "1. Personal Info",
+          "1. Personal",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         SizedBox(height: 10),
@@ -414,177 +416,271 @@ class _BusinessQuestionsPageState extends State<BusinessQuestionsPage> {
     );
   }
 
-  Widget _buildDeductionsCreditsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "3. Deductions & Credits",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        SizedBox(height: 5),
-        _buildSwitch('Are you claiming dependents?', hasDependents, (value) {
-          setState(() {
-            hasDependents = value;
-            if (!hasDependents) {
-              dependentsCount = null;
-              dependents.clear();
-            }
-          });
-        }),
-        if (hasDependents)
-          Column(
-            children: [
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'How many dependents?',
-                  labelStyle: TextStyle(color: Colors.orange[800]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.orange[300]!),
-                  ),
-                  filled: true,
-                  fillColor: Colors.orange[50],
-                ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  setState(() {
-                    dependentsCount = int.tryParse(value) ?? 0;
-                    dependents = List.generate(dependentsCount!, (_) => {
-                          'firstName': '',
-                          'lastName': '',
-                          'ssn': '',
-                          'dob': ''
-                        });
-                  });
-                },
-              ),
-              SizedBox(height: 5),
-              if (dependentsCount != null && dependentsCount! > 0)
-                ...List.generate(dependentsCount!, (index) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 10),
-                      Text(
-                        "Dependent ${index + 1}",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'First Name',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            dependents[index]['firstName'] = value;
-                          });
-                        },
-                        validator: (value) => value!.isEmpty ? 'Please enter first name' : null,
-                      ),
-                      SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Last Name',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            dependents[index]['lastName'] = value;
-                          });
-                        },
-                        validator: (value) => value!.isEmpty ? 'Please enter last name' : null,
-                      ),
-                      SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'SSN',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        keyboardType: TextInputType.number,
-                        obscureText: true,
-                        onChanged: (value) {
-                          setState(() {
-                            dependents[index]['ssn'] = value;
-                          });
-                        },
-                        validator: (value) => value!.isEmpty ? 'Please enter SSN' : null,
-                      ),
-                      SizedBox(height: 5),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Date of Birth (MM/DD/YYYY)',
-                          labelStyle: TextStyle(color: Colors.orange[800]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.orange[300]!),
-                          ),
-                          filled: true,
-                          fillColor: Colors.orange[50],
-                        ),
-                        keyboardType: TextInputType.datetime,
-                        onChanged: (value) {
-                          setState(() {
-                            dependents[index]['dob'] = value;
-                          });
-                        },
-                        validator: (value) => value!.isEmpty ? 'Please enter date of birth' : null,
-                      ),
-                    ],
-                  );
-                }),
-            ],
-          ),
+  // Widget _buildDeductionsCreditsSection() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Text(
+  //         "3. Deductions & Credits",
+  //         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+  //       ),
+  //       SizedBox(height: 5),
+  //       _buildSwitch('Are you claiming dependents?', hasDependents, (value) {
+  //         setState(() {
+  //           hasDependents = value;
+  //           if (!hasDependents) {
+  //             dependentsCount = null;
+  //             dependents.clear();
+  //           }
+  //         });
+  //       }),
+  //       if (hasDependents)
+  //         Column(
+  //           children: [
+  //             TextFormField(
+  //               decoration: InputDecoration(
+  //                 labelText: 'How many dependents?',
+  //                 labelStyle: TextStyle(color: Colors.orange[800]),
+  //                 border: OutlineInputBorder(
+  //                   borderRadius: BorderRadius.circular(10),
+  //                   borderSide: BorderSide(color: Colors.orange[300]!),
+  //                 ),
+  //                 filled: true,
+  //                 fillColor: Colors.orange[50],
+  //               ),
+  //               keyboardType: TextInputType.number,
+  //               onChanged: (value) {
+  //                 setState(() {
+  //                   dependentsCount = int.tryParse(value) ?? 0;
+  //                   dependents = List.generate(dependentsCount!, (_) => {
+  //                         'firstName': '',
+  //                         'lastName': '',
+  //                         'ssn': '',
+  //                         'dob': ''
+  //                       });
+  //                 });
+  //               },
+  //             ),
+  //             SizedBox(height: 5),
+  //             if (dependentsCount != null && dependentsCount! > 0)
+  //               ...List.generate(dependentsCount!, (index) {
+  //                 return Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     SizedBox(height: 10),
+  //                     Text(
+  //                       "Dependent ${index + 1}",
+  //                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //                     ),
+  //                     SizedBox(height: 5),
+  //                     TextFormField(
+  //                       decoration: InputDecoration(
+  //                         labelText: 'First Name',
+  //                         labelStyle: TextStyle(color: Colors.orange[800]),
+  //                         border: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(10),
+  //                           borderSide: BorderSide(color: Colors.orange[300]!),
+  //                         ),
+  //                         filled: true,
+  //                         fillColor: Colors.orange[50],
+  //                       ),
+  //                       onChanged: (value) {
+  //                         setState(() {
+  //                           dependents[index]['firstName'] = value;
+  //                         });
+  //                       },
+  //                       validator: (value) => value!.isEmpty ? 'Please enter first name' : null,
+  //                     ),
+  //                     SizedBox(height: 5),
+  //                     TextFormField(
+  //                       decoration: InputDecoration(
+  //                         labelText: 'Last Name',
+  //                         labelStyle: TextStyle(color: Colors.orange[800]),
+  //                         border: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(10),
+  //                           borderSide: BorderSide(color: Colors.orange[300]!),
+  //                         ),
+  //                         filled: true,
+  //                         fillColor: Colors.orange[50],
+  //                       ),
+  //                       onChanged: (value) {
+  //                         setState(() {
+  //                           dependents[index]['lastName'] = value;
+  //                         });
+  //                       },
+  //                       validator: (value) => value!.isEmpty ? 'Please enter last name' : null,
+  //                     ),
+  //                     SizedBox(height: 5),
+  //                     TextFormField(
+  //                       decoration: InputDecoration(
+  //                         labelText: 'SSN',
+  //                         labelStyle: TextStyle(color: Colors.orange[800]),
+  //                         border: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(10),
+  //                           borderSide: BorderSide(color: Colors.orange[300]!),
+  //                         ),
+  //                         filled: true,
+  //                         fillColor: Colors.orange[50],
+  //                       ),
+  //                       keyboardType: TextInputType.number,
+  //                       obscureText: true,
+  //                       onChanged: (value) {
+  //                         setState(() {
+  //                           dependents[index]['ssn'] = value;
+  //                         });
+  //                       },
+  //                       validator: (value) => value!.isEmpty ? 'Please enter SSN' : null,
+  //                     ),
+  //                     SizedBox(height: 5),
+  //                     TextFormField(
+  //                       decoration: InputDecoration(
+  //                         labelText: 'Date of Birth (MM/DD/YYYY)',
+  //                         labelStyle: TextStyle(color: Colors.orange[800]),
+  //                         border: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(10),
+  //                           borderSide: BorderSide(color: Colors.orange[300]!),
+  //                         ),
+  //                         filled: true,
+  //                         fillColor: Colors.orange[50],
+  //                       ),
+  //                       keyboardType: TextInputType.datetime,
+  //                       onChanged: (value) {
+  //                         setState(() {
+  //                           dependents[index]['dob'] = value;
+  //                         });
+  //                       },
+  //                       validator: (value) => value!.isEmpty ? 'Please enter date of birth' : null,
+  //                     ),
+  //                   ],
+  //                 );
+  //               }),
+  //           ],
+  //         ),
         
-        SizedBox(height: 15),
-        _buildSwitch('Eligible for tax credits (Child Tax, EITC, Education)?', eligibleTaxCredits, (value) {
-          setState(() {
-            eligibleTaxCredits = value;
-          });
-        }),
+  //       SizedBox(height: 15),
+  //       _buildSwitch('Eligible for tax credits (Child Tax, EITC, Education)?', eligibleTaxCredits, (value) {
+  //         setState(() {
+  //           eligibleTaxCredits = value;
+  //         });
+  //       }),
         
-        SizedBox(height: 15),
-        MultiSelectDialogField(
-          items: contributionTypes.map((type) => MultiSelectItem<String>(type, type)).toList(),
-          title: Text("Contributions"),
-          selectedColor: Colors.orange[800],
-          decoration: BoxDecoration(
-            color: Colors.orange[50],
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-            border: Border.all(color: Colors.orange[300]!, width: 1),
+  //       SizedBox(height: 15),
+  //       MultiSelectDialogField(
+  //         items: contributionTypes.map((type) => MultiSelectItem<String>(type, type)).toList(),
+  //         title: Text("Contributions"),
+  //         selectedColor: Colors.orange[800],
+  //         decoration: BoxDecoration(
+  //           color: Colors.orange[50],
+  //           borderRadius: BorderRadius.all(Radius.circular(10)),
+  //           border: Border.all(color: Colors.orange[300]!, width: 1),
+  //         ),
+  //         buttonText: Text("Select Contributions", style: TextStyle(color: Colors.orange[800])),
+  //         onConfirm: (values) {
+  //           setState(() {
+  //             selectedContributions = values;
+  //           });
+  //         },
+  //         validator: (values) => values == null || values.isEmpty ? 'Please select at least one contribution' : null,
+  //       ),
+  //       SizedBox(height: 15),
+  //     ],
+      
+  //   );
+Widget _buildDeductionsCreditsSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "3. Deductions & Credits",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+      ),
+      SizedBox(height: 5),
+      _buildSwitch('Are you claiming dependents?', hasDependents, (value) {
+        setState(() {
+          hasDependents = value;
+          if (!hasDependents) {
+            dependentsCount = null;
+            dependents.clear();
+            dependentsType = null; // Reset dependents type to ensure UI consistency
+          }
+        });
+      }),
+      if (hasDependents) ...[
+        DropdownButtonFormField<String>(
+          value: dependentsType,
+          decoration: InputDecoration(
+            labelText: 'Type of Dependents',
+            labelStyle: TextStyle(color: Colors.orange[800]),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.orange[300]!),
+            ),
+            filled: true,
+            fillColor: Colors.orange[50],
           ),
-          buttonText: Text("Select Contributions", style: TextStyle(color: Colors.orange[800])),
-          onConfirm: (values) {
+          items: <String>['Children', 'Relatives', 'Other'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
             setState(() {
-              selectedContributions = values;
+              dependentsType = newValue;
+              print("Dependents Type Updated: $dependentsType"); // Debugging
             });
           },
-          validator: (values) => values == null || values.isEmpty ? 'Please select at least one contribution' : null,
+          validator: (value) => value == null ? 'Please select the type of dependents' : null,
         ),
+        // Use ValueKey to force rebuild when dependentsType changes
+        if (dependentsType == 'Other')
+          TextFormField(
+            key: ValueKey(dependentsType), // Key to force rebuild
+            decoration: InputDecoration(
+              labelText: 'Details for Other Dependents',
+              labelStyle: TextStyle(color: Colors.orange[800]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.orange[300]!),
+              ),
+              filled: true,
+              fillColor: Colors.orange[50],
+            ),
+            onChanged: (value) {
+              // Optionally handle state update
+            },
+            validator: (value) => value!.isEmpty ? 'Please enter details for other dependents' : null,
+          ),
         SizedBox(height: 15),
       ],
-      
-    );
-  }
+      _buildSwitch('Eligible for tax credits (Child Tax, EITC, Education)?', eligibleTaxCredits, (value) {
+        setState(() {
+          eligibleTaxCredits = value;
+        });
+      }),
+      SizedBox(height: 15),
+      MultiSelectDialogField(
+        items: contributionTypes.map((type) => MultiSelectItem<String>(type, type)).toList(),
+        title: Text("Contributions"),
+        selectedColor: Colors.orange[800],
+        decoration: BoxDecoration(
+          color: Colors.orange[50],
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+          border: Border.all(color: Colors.orange[300]!, width: 1),
+        ),
+        buttonText: Text("Select Contributions", style: TextStyle(color: Colors.orange[800])),
+        onConfirm: (values) {
+          setState(() {
+            selectedContributions = values;
+          });
+        },
+        validator: (values) => values == null || values.isEmpty ? 'Please select at least one contribution' : null,
+      ),
+      SizedBox(height: 15),
+    ],
+  );
+}
+
 
   Widget _buildPaymentsRefundsSection() {
     return Column(

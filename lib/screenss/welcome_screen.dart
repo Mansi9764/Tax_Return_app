@@ -34,7 +34,7 @@ class WelcomeScreen extends StatelessWidget {
                 SizedBox(height: 30),
                 // Professional, simple heading
                 Text(
-                  "Welcome to EasyTax",
+                  "Welcome to Tax Tech 360",
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
@@ -104,7 +104,7 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          "Join thousands of satisfied customers with EasyTax.",
+                          "Join thousands of satisfied customers with Tax Tech 360.",
                           style: TextStyle(fontSize: 14, color: Colors.black87),
                           textAlign: TextAlign.center,
                         ),

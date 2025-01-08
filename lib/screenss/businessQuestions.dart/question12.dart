@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:retail_tax_filing_app/screenss/Licence_page.dart';
 import 'package:retail_tax_filing_app/screenss/PaymentService.dart';
 
 //import 'question13.dart'; // Assuming you'll have a Question13, update as needed
@@ -118,7 +119,7 @@ class _Question12State extends State<Question12> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PaymentPage(), // Replace with your Question13 widget
+                        builder: (context) => LicenseUploadPage(), // Replace with your Question13 widget
                       ),
                     );
                   },
