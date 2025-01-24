@@ -319,6 +319,7 @@ void _submit() {
                       SizedBox(height: 15),
         DropdownButtonFormField<String>(
           value: filingStatus,
+          isExpanded: true,
           decoration: InputDecoration(
             labelText: 'Filing Status',
             labelStyle: TextStyle(color: Colors.orange[800]),
