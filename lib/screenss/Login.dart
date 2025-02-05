@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(height: 20),
                 Divider(),
                 SizedBox(height: 10),
-                _buildSocialLoginOptions(),
+                //_buildSocialLoginOptions(),
                 SizedBox(height: 30),
                 _buildSignUpOption(),
               ],
@@ -221,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         children: [
           Text(
-            "New to ChauffeurX?",
+            "New to Tax tech 360?",
             style: TextStyle(fontSize: 16),
           ),
           TextButton(

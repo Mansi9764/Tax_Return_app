@@ -8,17 +8,8 @@ class Question1 extends StatefulWidget {
 }
 
 class _Question1State extends State<Question1> {
-  // This map stores the selected status for each tax year
-  Map<String, bool> taxYears = {
-    '2024': false,
-    '2023': false,
-    '2022': false,
-    '2021': false,
-    '2020': false,
-    '2019': false,
-    '2018': false,
-    '2017': false,
-  };
+  // This variable stores the currently selected tax year
+  String? selectedYear;
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +50,8 @@ class _Question1State extends State<Question1> {
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
-                    children: taxYears.keys.map((String year) {
-                      return CheckboxListTile(
+                    children: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017'].map((String year) {
+                      return RadioListTile<String>(
                         title: Text(
                           year,
                           style: TextStyle(
@@ -68,11 +59,12 @@ class _Question1State extends State<Question1> {
                             color: Colors.black87,
                           ),
                         ),
-                        value: taxYears[year],
+                        value: year,
+                        groupValue: selectedYear,
                         activeColor: const Color.fromARGB(255, 240, 153, 127),
-                        onChanged: (bool? value) {
+                        onChanged: (String? value) {
                           setState(() {
-                            taxYears[year] = value ?? false;
+                            selectedYear = value;
                           });
                         },
                       );
@@ -83,26 +75,15 @@ class _Question1State extends State<Question1> {
               SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Collect selected tax years
-                    List<String> selectedYears = [];
-                    taxYears.forEach((year, isSelected) {
-                      if (isSelected) {
-                        selectedYears.add(year);
-                      }
-                    });
-
-                    // Print the selected tax years
-                    print('Selected Tax Years: $selectedYears');
-
-                    // Navigate to Question2Page
+                  onPressed: selectedYear != null ? () {
+                    print('Selected Tax Year: $selectedYear');
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => Question2(), // Redirect to Question2Page
                       ),
                     );
-                  },
+                  } : null,
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                     backgroundColor: const Color.fromARGB(255, 242, 154, 127),
@@ -110,7 +91,6 @@ class _Question1State extends State<Question1> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 4,
-
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -135,5 +115,3 @@ class _Question1State extends State<Question1> {
     );
   }
 }
-
-

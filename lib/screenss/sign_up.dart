@@ -1,67 +1,148 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
+import 'package:retail_tax_filing_app/screenss/packages_new.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends State<SignUpScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
-//   
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-bool _isEmailVerified = false;
-  Timer? _timer;
-
-  bool _isOtpSent = false;
-  final TextEditingController _otpController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  // Controllers for User Information
   final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _lastNameController  = TextEditingController();
+  final TextEditingController _emailController     = TextEditingController();
+  final TextEditingController _passwordController  = TextEditingController();
+  final TextEditingController _phoneController     = TextEditingController();
+  final TextEditingController _otpController       = TextEditingController();
+
+  bool _isOtpSent     = false;
+  bool _otpVerified   = false;
+  bool _isEmailVerified = false;
   String? _verificationId;
+
+  TabController? _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    // Listen for tab changes to update the UI if needed
+    _tabController!.addListener(() {
+      setState(() {
+        // Optionally reset verification flags on tab change
+        // _isEmailVerified = false;
+        // _otpVerified = false;
+        // _isOtpSent = false;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneController.dispose();
+    _otpController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title: Text('Sign Up'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color.fromARGB(255, 231, 162, 94),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Navigate Back
+          },
+        ),
+        // Place the TabBar at the bottom of the AppBar
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(48),
+          child: TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(text: "Email"),
+              Tab(text: "Phone"),
+            ],
+          ),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  "Welcome, Please Sign Up",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                  textAlign: TextAlign.center,
+      body: Center(
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+          child: SingleChildScrollView(
+            child: Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Common header and input fields
+                      Text(
+                        "Create Your New Account",
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 15),
+                      _buildFirstNameInput(),
+                      _buildLastNameInput(),
+                      // TabBarView to show Email vs Phone sign up fields.
+                      // Note: Adjust the container height as needed.
+                      Container(
+                        height: 300,
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            // Email Sign Up Tab
+                            Column(
+                              children: [
+                                _buildEmailInput(),
+                                _buildPasswordInput(),
+                                _buildVerifyEmailButton(),
+                                _verificationStatus(),
+                              ],
+                            ),
+                            // Phone Sign Up Tab
+                            Column(
+                              children: [
+                                _buildPhoneInput(),
+                                _buildSendOtpButton(),
+                                if (_isOtpSent) _buildOtpInput(),
+                                if (_otpVerified) _verificationSymbol(),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 25),
+                      _buildSignUpButton(),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 20),
-                _buildFirstNameInput(),
-               _buildLastNameInput(),
-                _buildEmailInput(),
-                _buildVerifyEmailButton(),
-                _verificationStatus(),
-                _buildPhoneInput(),
-                SizedBox(height: 20),
-                 _buildGetOtpButton(),
-                 if (_isOtpSent) _buildOtpInput(),
-                 _buildPasswordInput(),
-                 SizedBox(height: 20),
-                _buildSignUpButton(),
-                
-              ],
+              ),
             ),
           ),
         ),
@@ -69,675 +150,266 @@ bool _isEmailVerified = false;
     );
   }
 
+  /// **📌 First Name Input Field**
+  Widget _buildFirstNameInput() {
+    return _customTextField(
+      controller: _firstNameController,
+      label: 'First Name',
+      icon: Icons.person,
+    );
+  }
+
+  /// **📌 Last Name Input Field**
+  Widget _buildLastNameInput() {
+    return _customTextField(
+      controller: _lastNameController,
+      label: 'Last Name',
+      icon: Icons.person_outline,
+    );
+  }
+
+  /// **📌 Email Input Field**
   Widget _buildEmailInput() {
-    return TextFormField(
+    return _customTextField(
       controller: _emailController,
-      decoration: InputDecoration(
-        labelText: 'Email',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.email),
-      ),
+      label: 'Email',
+      icon: Icons.email,
       keyboardType: TextInputType.emailAddress,
-      validator: (value) {
-        if (value!.isEmpty || !value.contains('@')) {
-          return 'Please enter a valid email';
-        }
-        return null;
-      },
     );
   }
 
+  /// **📌 Password Input Field**
   Widget _buildPasswordInput() {
-    return TextFormField(
+    return _customTextField(
       controller: _passwordController,
-      decoration: InputDecoration(
-        labelText: 'Password',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.lock),
-      ),
+      label: 'Password',
+      icon: Icons.lock,
       obscureText: true,
-      validator: (value) {
-        if (value!.isEmpty || value.length < 6) {
-          return 'Password must be at least 6 characters';
-        }
-        return null;
-      },
     );
   }
 
-  Widget _buildSignUpButton() {
-    return ElevatedButton(
-      onPressed: _isLoading ? null : () => _signUp(),
-      child: Text('Sign Up'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurple,
-        padding: EdgeInsets.symmetric(vertical: 12),
-        textStyle: TextStyle(fontSize: 18),
-      ),
+  /// **📌 Phone Number Input Field**
+  Widget _buildPhoneInput() {
+    return _customTextField(
+      controller: _phoneController,
+      label: 'Phone Number',
+      icon: Icons.phone,
+      keyboardType: TextInputType.phone,
     );
   }
 
-  Widget _buildVerifyEmailButton() {
-    return Visibility(
-      visible: !_isEmailVerified,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : () {
-          if (!_isEmailVerified) {
-            _sendVerificationEmail();
-          }
-        },
-        child: Text('Verify Email'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange,
-          padding: EdgeInsets.symmetric(vertical: 12),
-          textStyle: TextStyle(fontSize: 18),
-        ),
-      ),
-    );
-  }
-
-  Widget _verificationStatus() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      child: Text(
-        _isEmailVerified ? "Email has been verified" : "Email not verified yet",
-        style: TextStyle(color: _isEmailVerified ? Colors.green : Colors.red),
-      ),
-    );
-  }
-
-  Future<void> _signUp() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        setState(() {
-          _isLoading = true;
-        });
-        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        User? user = userCredential.user;
-        if (user != null && !user.emailVerified) {
-          _sendVerificationEmail();
-        }
-      } on FirebaseAuthException catch (e) {
-        Fluttertoast.showToast(msg: 'Failed to sign up: ${e.message}');
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _sendVerificationEmail() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null && !user.emailVerified) {
-      await user.sendEmailVerification();
-      Fluttertoast.showToast(msg: 'Verification email has been sent to ${user.email}');
-      startCheckingEmailVerification();
-    }
-  }
-
-  void startCheckingEmailVerification() {
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
-      await FirebaseAuth.instance.currentUser!.reload();
-      var user = FirebaseAuth.instance.currentUser;
-      if (user != null && user.emailVerified) {
-        setState(() {
-          _isEmailVerified = true;
-        });
-        Fluttertoast.showToast(msg: "Email has been verified.");
-        timer.cancel();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
- 
-  Widget _buildGetOtpButton() {
-    return ElevatedButton(
-      onPressed: _isOtpSent ? null : _getOtp,
-      child: Text('Get OTP'),
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white, backgroundColor: Colors.blue,
-        padding: EdgeInsets.symmetric(vertical: 12),
-      ),
-    );
-  }
-
-   Widget _buildOtpInput() {
+  /// **📌 OTP Input Field**
+  Widget _buildOtpInput() {
     return Column(
       children: [
-        TextFormField(
+        SizedBox(height: 10),
+        _customTextField(
           controller: _otpController,
-          decoration: InputDecoration(
-            labelText: 'Enter OTP',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.message),
-          ),
+          label: 'Enter OTP',
+          icon: Icons.message,
           keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter OTP';
-            }
-            return null;
-          },
         ),
         SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: _verifyOtp,
-          child: Text('Verify OTP'),
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white, backgroundColor: Colors.green,
-            padding: EdgeInsets.symmetric(vertical: 12),
-          ),
+        _customButton('Verify OTP', Colors.green, _verifyOtp),
+      ],
+    );
+  }
+
+  /// **📌 Verify Email Button**
+  Widget _buildVerifyEmailButton() {
+    return _customButton(
+        'Verify Email', const Color.fromARGB(255, 241, 164, 47), _sendVerificationEmail);
+  }
+
+  /// **📌 Send OTP Button**
+  Widget _buildSendOtpButton() {
+    return _customButton(
+        'Send OTP', const Color.fromARGB(255, 122, 187, 241), _getOtp);
+  }
+
+  /// **📌 Sign Up Button**
+  Widget _buildSignUpButton() {
+    // Check which tab is active:
+    // - Tab index 0: Email verification is required.
+    // - Tab index 1: OTP verification is required.
+    bool isVerified =
+        _tabController!.index == 0 ? _isEmailVerified : _otpVerified;
+    return _customButton(
+      'Sign Up & Proceed',
+      const Color.fromARGB(255, 198, 174, 239),
+      isVerified ? _completeSignUp : null,
+    );
+  }
+
+  /// **✅ OTP Verified Symbol**
+  Widget _verificationSymbol() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.check_circle, color: Colors.green, size: 24),
+        SizedBox(width: 8),
+        Text(
+          'OTP Verified',
+          style: TextStyle(color: Colors.green, fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ],
     );
   }
 
+  /// **📌 Verification Status UI for Email**
+  Widget _verificationStatus() {
+    return Column(
+      children: [
+        Text(
+          _isEmailVerified ? "✅ Email Verified" : "❌ Email Not Verified",
+          style: TextStyle(color: _isEmailVerified ? Colors.green : Colors.red),
+        ),
+        if (_isOtpSent) Text("📩 OTP Sent! Enter OTP to verify."),
+      ],
+    );
+  }
 
-  void _getOtp() {
-    if (_phoneController.text.isNotEmpty) {
-      setState(() {
-        _isLoading = true;
-      });
+  /// **📌 Complete Sign Up & Redirect to Packages Page**
+  void _completeSignUp() {
+    Fluttertoast.showToast(msg: "✅ Sign Up Successful!");
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => PackageSelectionScreen()));
+  }
 
-      FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: '+1${_phoneController.text}',
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          await FirebaseAuth.instance.signInWithCredential(credential);
-          setState(() {
-            _isOtpSent = false;
-            Fluttertoast.showToast(msg: 'Phone verification completed.');
-          });
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          Fluttertoast.showToast(msg: 'Phone verification failed: ${e.message}');
-          setState(() {
-            _isLoading = false;
-          });
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          setState(() {
-            _verificationId = verificationId;
-            _isOtpSent = true;
-            _isLoading = false;
-          });
-          Fluttertoast.showToast(msg: 'OTP sent to your phone.');
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          _verificationId = verificationId;
-        },
+  /// **📌 Send Email Verification**
+  void _sendVerificationEmail() async {
+    try {
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
+
+      await userCredential.user?.sendEmailVerification();
+      Fluttertoast.showToast(
+          msg: '📩 Verification email sent. Check your inbox.');
+      _checkEmailVerification();
+    } catch (e) {
+      Fluttertoast.showToast(msg: '⚠️ Error: ${e.toString()}');
     }
   }
 
-  void _verifyOtp() {
-    final code = _otpController.text.trim();
-    if (_verificationId != null && code.isNotEmpty) {
-      final credential = PhoneAuthProvider.credential(verificationId: _verificationId!, smsCode: code);
-
-      FirebaseAuth.instance.signInWithCredential(credential).then((userCredential) {
-        setState(() {
-          Fluttertoast.showToast(msg: 'OTP Verified Successfully!');
-          _isOtpSent = false; // Optionally reset this if you want to allow re-verification
-        });
-      }).catchError((error) {
-        Fluttertoast.showToast(msg: 'Failed to verify OTP: ${error.toString()}');
+  /// **📌 Check Email Verification Status**
+  void _checkEmailVerification() async {
+    await _auth.currentUser?.reload();
+    User? user = _auth.currentUser;
+    if (user != null && user.emailVerified) {
+      setState(() {
+        _isEmailVerified = true;
       });
+      Fluttertoast.showToast(msg: '✅ Email Verified Successfully!');
+    } else {
+      Future.delayed(Duration(seconds: 5), _checkEmailVerification);
     }
   }
 
-   Widget _buildPhoneInput() {
-    return TextFormField(
-      controller: _phoneController,
-      decoration: InputDecoration(
-        labelText: 'Phone Number',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.phone),
-      ),
-      keyboardType: TextInputType.phone,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your phone number';
-        }
-        if (!RegExp(r'^\d{10}$').hasMatch(value)) {
-          return 'Please enter a valid 10-digit phone number';
-        }
-        return null;
+  /// **📌 Get OTP from Firebase**
+  void _getOtp() {
+    _auth.verifyPhoneNumber(
+      phoneNumber: '+1${_phoneController.text.trim()}',
+      timeout: Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await _auth.signInWithCredential(credential);
+        setState(() {
+          _isOtpSent = false;
+          _otpVerified = true;
+        });
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        Fluttertoast.showToast(msg: '⚠️ Verification failed: ${e.message}');
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        setState(() {
+          _verificationId = verificationId;
+          _isOtpSent = true;
+        });
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        _verificationId = verificationId;
       },
     );
   }
 
-    Widget _buildFirstNameInput() {
-    return TextFormField(
-      controller: _firstNameController,
-      decoration: InputDecoration(
-        labelText: 'First Name',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.person),
+  // **📌 Helper Methods for UI Components**
+  Widget _customTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 15),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(icon),
+        ),
+        keyboardType: keyboardType,
+        obscureText: obscureText,
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your first name';
-        }
-        return null;
-      },
     );
   }
 
-  Widget _buildLastNameInput() {
-    return TextFormField(
-      controller: _lastNameController,
-      decoration: InputDecoration(
-        labelText: 'Last Name',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.person),
+  Widget _customButton(String text, Color color, VoidCallback? onPressed) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+            backgroundColor: color, padding: EdgeInsets.symmetric(vertical: 12)),
+        child: Text(text),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your last name';
-        }
-        return null;
-      },
     );
   }
 
+  /// **📌 Verify OTP**
+  void _verifyOtp() async {
+    final code = _otpController.text.trim();
+    print("🔢 User Entered OTP: $code");
+
+    if (_verificationId != null && code.isNotEmpty) {
+      try {
+        final credential = PhoneAuthProvider.credential(
+          verificationId: _verificationId!,
+          smsCode: code,
+        );
+
+        print("✅ Verifying OTP...");
+        UserCredential userCredential =
+            await _auth.signInWithCredential(credential);
+
+        // Debugging: Print raw response
+        print("👤 Raw UserCredential Response: ${userCredential}");
+
+        // Check if the user is authenticated
+        if (userCredential.user != null) {
+          print("✅ User authenticated successfully: ${userCredential.user!.uid}");
+          setState(() {
+            _otpVerified = true;
+            _isOtpSent = false; // Hide OTP input after verification
+          });
+
+          Fluttertoast.showToast(msg: '✅ OTP Verified Successfully!');
+        } else {
+          print("⚠️ Warning: UserCredential.user is NULL!");
+          Fluttertoast.showToast(msg: '⚠️ OTP Verification Failed.');
+        }
+      } catch (error, stacktrace) {
+        print("❌ OTP Verification Failed: ${error.toString()}");
+        print("🔍 Stack Trace: $stacktrace");
+        Fluttertoast.showToast(msg: 'Failed to verify OTP: ${error.toString()}');
+      }
+    } else {
+      print("⚠️ Invalid OTP or Verification ID is null");
+      Fluttertoast.showToast(msg: 'Please enter a valid OTP');
+    }
+  }
 }
-
-
-
-
-// class SignUpScreen extends StatefulWidget {
-//   @override
-//   _SignUpScreenState createState() => _SignUpScreenState();
-// }
-
-// class _SignUpScreenState extends State<SignUpScreen> {
-//   final _formKey = GlobalKey<FormState>();
-//   final TextEditingController _emailController = TextEditingController();
-//   final TextEditingController _passwordController = TextEditingController();
-//   bool _isLoading = false;
-//   bool _isEmailVerified = false;
-//   Timer? _timer;
-
-//   bool _isOtpSent = false;
-//   final TextEditingController _otpController = TextEditingController();
-//   final TextEditingController _phoneController = TextEditingController();
-//   final TextEditingController _firstNameController = TextEditingController();
-//   final TextEditingController _lastNameController = TextEditingController();
-//   String? _verificationId;
-//   bool _isOtpVerified = false;
-
-// @override
-// Widget build(BuildContext context) {
-//     return Scaffold(
-//         appBar: AppBar(
-//             title: Text('Sign Up'),
-//             backgroundColor: Colors.deepPurple,
-//         ),
-//         body: Padding(
-//             padding: const EdgeInsets.all(16.0),
-//             child: SingleChildScrollView(
-//                 child: Form(
-//                     key: _formKey,
-//                     child: Column(
-//                         crossAxisAlignment: CrossAxisAlignment.stretch,
-//                         children: [
-//                             Text(
-//                                 "Welcome, Please Sign Up",
-//                                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-//                                 textAlign: TextAlign.center,
-//                             ),
-//                             SizedBox(height: 20),
-//                             // _buildFirstNameInput(),
-//                             // _buildLastNameInput(),
-//                             _buildEmailInput(),
-//                             _buildVerifyEmailButton(),
-//                             _verificationStatus(),
-//                             // _buildPhoneInput(),
-//                             // _buildGetOtpButton(),
-//                             // if (_isOtpSent) _buildOtpInput(),
-//                             // SizedBox(height: 20),
-//                             // if (_isOtpVerified || _isOtpSent) _otpVerificationStatus(),
-//                             _buildPasswordInput(),
-//                             SizedBox(height: 20),
-//                             _buildSignUpButton(),
-//                         ],
-//                     ),
-//                 ),
-//             ),
-//         ),
-//     );
-// }
-
-
-
-//   Widget _buildEmailInput() {
-//     return TextFormField(
-//       controller: _emailController,
-//       decoration: InputDecoration(
-//         labelText: 'Email',
-//         border: OutlineInputBorder(),
-//         prefixIcon: Icon(Icons.email),
-//       ),
-//       keyboardType: TextInputType.emailAddress,
-//       validator: (value) {
-//         if (value!.isEmpty || !value.contains('@')) {
-//           return 'Please enter a valid email';
-//         }
-//         return null;
-//       },
-//     );
-//   }
-
-//   Widget _buildPasswordInput() {
-//     return TextFormField(
-//       controller: _passwordController,
-//       decoration: InputDecoration(
-//         labelText: 'Password',
-//         border: OutlineInputBorder(),
-//         prefixIcon: Icon(Icons.lock),
-//       ),
-//       obscureText: true,
-//       validator: (value) {
-//         if (value!.isEmpty || value.length < 6) {
-//           return 'Password must be at least 6 characters';
-//         }
-//         return null;
-//       },
-//     );
-//   }
-
-//   Widget _buildSignUpButton() {
-//     return ElevatedButton(
-//       onPressed: _isLoading ? null : () => _signUp(),
-//       child: Text('Sign Up'),
-//       style: ElevatedButton.styleFrom(
-//         backgroundColor: Colors.deepPurple,
-//         padding: EdgeInsets.symmetric(vertical: 12),
-//         textStyle: TextStyle(fontSize: 18),
-//       ),
-//     );
-//   }
-
-//   Widget _buildVerifyEmailButton() {
-//     return Visibility(
-//       visible: !_isEmailVerified,
-//       child: ElevatedButton(
-//         onPressed: _isLoading ? null : () {
-//           if (!_isEmailVerified) {
-//             _sendVerificationEmail();
-//           }
-//         },
-//         child: Text('Verify Email'),
-//         style: ElevatedButton.styleFrom(
-//           backgroundColor: Colors.orange,
-//           padding: EdgeInsets.symmetric(vertical: 12),
-//           textStyle: TextStyle(fontSize: 18),
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _verificationStatus() {
-//     return Container(
-//       padding: EdgeInsets.all(16),
-//       child: Text(
-//         _isEmailVerified ? "Email has been verified" : "Email not verified yet",
-//         style: TextStyle(color: _isEmailVerified ? Colors.green : Colors.red),
-//       ),
-//     );
-//   }
-
-//   Future<void> _signUp() async {
-//     if (_formKey.currentState!.validate()) {
-//       try {
-//         setState(() {
-//           _isLoading = true;
-//         });
-//         UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-//           email: _emailController.text.trim(),
-//           password: _passwordController.text.trim(),
-//         );
-//         User? user = userCredential.user;
-//         if (user != null && !user.emailVerified) {
-//           _sendVerificationEmail();
-//         }
-//       } on FirebaseAuthException catch (e) {
-//         Fluttertoast.showToast(msg: 'Failed to sign up: ${e.message}');
-//       } finally {
-//         setState(() {
-//           _isLoading = false;
-//         });
-//       }
-//     }
-//   }
-
-//   Future<void> _sendVerificationEmail() async {
-//     User? user = FirebaseAuth.instance.currentUser;
-//     if (user != null && !user.emailVerified) {
-//       await user.sendEmailVerification();
-//       Fluttertoast.showToast(msg: 'Verification email has been sent to ${user.email}');
-//       startCheckingEmailVerification();
-//     }
-//   }
-
-//   void startCheckingEmailVerification() {
-//     _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
-//       await FirebaseAuth.instance.currentUser!.reload();
-//       var user = FirebaseAuth.instance.currentUser;
-//       if (user != null && user.emailVerified) {
-//         setState(() {
-//           _isEmailVerified = true;
-//         });
-//         Fluttertoast.showToast(msg: "Email has been verified.");
-//         timer.cancel();
-//       }
-//     });
-//   }
-
-//   @override
-//   void dispose() {
-//     _timer?.cancel();
-//     super.dispose();
-//   }
-
- 
-//   Widget _buildGetOtpButton() {
-//     return ElevatedButton(
-//       onPressed: _isOtpSent ? null : _getOtp,
-//       child: Text('Get OTP'),
-//       style: ElevatedButton.styleFrom(
-//         foregroundColor: Colors.white, backgroundColor: Colors.blue,
-//         padding: EdgeInsets.symmetric(vertical: 12),
-//       ),
-//     );
-//   }
-
-//    Widget _buildOtpInput() {
-//     return Column(
-//       children: [
-//         TextFormField(
-//           controller: _otpController,
-//           decoration: InputDecoration(
-//             labelText: 'Enter OTP',
-//             border: OutlineInputBorder(),
-//             prefixIcon: Icon(Icons.message),
-//           ),
-//           keyboardType: TextInputType.number,
-//           validator: (value) {
-//             if (value == null || value.isEmpty) {
-//               return 'Please enter OTP';
-//             }
-//             return null;
-//           },
-//         ),
-//         SizedBox(height: 10),
-//         ElevatedButton(
-//           onPressed: _verifyOtp,
-//           child: Text('Verify OTP'),
-//           style: ElevatedButton.styleFrom(
-//             foregroundColor: Colors.white, backgroundColor: Colors.green,
-//             padding: EdgeInsets.symmetric(vertical: 12),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-
-
-//   void _getOtp() {
-//     if (_phoneController.text.isNotEmpty) {
-//       setState(() {
-//         _isLoading = true;
-//       });
-
-//       FirebaseAuth.instance.verifyPhoneNumber(
-//         phoneNumber: '+1${_phoneController.text}',
-//         verificationCompleted: (PhoneAuthCredential credential) async {
-//           await FirebaseAuth.instance.signInWithCredential(credential);
-//           setState(() {
-//             _isOtpSent = false;
-//             Fluttertoast.showToast(msg: 'Phone verification completed.');
-//           });
-//         },
-//         verificationFailed: (FirebaseAuthException e) {
-//           Fluttertoast.showToast(msg: 'Phone verification failed: ${e.message}');
-//           setState(() {
-//             _isLoading = false;
-//           });
-//         },
-//         codeSent: (String verificationId, int? resendToken) {
-//           setState(() {
-//             _verificationId = verificationId;
-//             _isOtpSent = true;
-//             _isLoading = false;
-//           });
-//           Fluttertoast.showToast(msg: 'OTP sent to your phone.');
-//         },
-//         codeAutoRetrievalTimeout: (String verificationId) {
-//           _verificationId = verificationId;
-//         },
-//       );
-//     }
-//   }
-
-//   // void _verifyOtp() {
-//   //   final code = _otpController.text.trim();
-//   //   if (_verificationId != null && code.isNotEmpty) {
-//   //     final credential = PhoneAuthProvider.credential(verificationId: _verificationId!, smsCode: code);
-
-//   //     FirebaseAuth.instance.signInWithCredential(credential).then((userCredential) {
-//   //       setState(() {
-//   //         Fluttertoast.showToast(msg: 'OTP Verified Successfully!');
-//   //         _isOtpSent = false; // Optionally reset this if you want to allow re-verification
-//   //       });
-//   //     }).catchError((error) {
-//   //       Fluttertoast.showToast(msg: 'Failed to verify OTP: ${error.toString()}');
-//   //     });
-//   //   }
-//   // }
-
-// void _verifyOtp() {
-//     final code = _otpController.text.trim();
-//     if (_verificationId != null && code.isNotEmpty) {
-//         final credential = PhoneAuthProvider.credential(verificationId: _verificationId!, smsCode: code);
-
-//         FirebaseAuth.instance.signInWithCredential(credential).then((userCredential) {
-//             setState(() {
-//                 _isOtpVerified = true;  // Set the OTP verified status to true on successful verification
-//                 Fluttertoast.showToast(msg: 'OTP Verified Successfully!');
-//                 _isOtpSent = false; // Reset this if re-verification is allowed
-//             });
-//         }).catchError((error) {
-//             setState(() {
-//                 _isOtpVerified = false; // Set the OTP verified status to false on failure
-//             });
-//             Fluttertoast.showToast(msg: 'Failed to verify OTP: ${error.toString()}');
-//         });
-//     } else {
-//         Fluttertoast.showToast(msg: 'Please enter a valid OTP');
-//     }
-// }
-
-
-
-//    Widget _buildPhoneInput() {
-//     return TextFormField(
-//       controller: _phoneController,
-//       decoration: InputDecoration(
-//         labelText: 'Phone Number',
-//         border: OutlineInputBorder(),
-//         prefixIcon: Icon(Icons.phone),
-//       ),
-//       keyboardType: TextInputType.phone,
-//       validator: (value) {
-//         if (value == null || value.isEmpty) {
-//           return 'Please enter your phone number';
-//         }
-//         if (!RegExp(r'^\d{10}$').hasMatch(value)) {
-//           return 'Please enter a valid 10-digit phone number';
-//         }
-//         return null;
-//       },
-//     );
-//   }
-
-//     Widget _buildFirstNameInput() {
-//     return TextFormField(
-//       controller: _firstNameController,
-//       decoration: InputDecoration(
-//         labelText: 'First Name',
-//         border: OutlineInputBorder(),
-//         prefixIcon: Icon(Icons.person),
-//       ),
-//       validator: (value) {
-//         if (value == null || value.isEmpty) {
-//           return 'Please enter your first name';
-//         }
-//         return null;
-//       },
-//     );
-//   }
-
-//   Widget _buildLastNameInput() {
-//     return TextFormField(
-//       controller: _lastNameController,
-//       decoration: InputDecoration(
-//         labelText: 'Last Name',
-//         border: OutlineInputBorder(),
-//         prefixIcon: Icon(Icons.person),
-//       ),
-//       validator: (value) {
-//         if (value == null || value.isEmpty) {
-//           return 'Please enter your last name';
-//         }
-//         return null;
-//       },
-//     );
-//   }
-
-// Widget _otpVerificationStatus() {
-//     return Container(
-//         padding: EdgeInsets.all(16),
-//         child: Text(
-//             _isOtpVerified ? "OTP has been verified successfully" : "OTP not verified yet",
-//             style: TextStyle(color: _isOtpVerified ? Colors.green : Colors.red),
-//         ),
-//     );
-// }
-
-
-
-// }
-
-
-

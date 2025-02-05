@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:retail_tax_filing_app/screenss/businessQuestions.dart/question6.dart';
 
-
 class Question5 extends StatefulWidget {
   @override
   _Question5State createState() => _Question5State();
 }
 
 class _Question5State extends State<Question5> {
-  // Controller for the business address input
   TextEditingController addressController = TextEditingController();
   TextEditingController cityController = TextEditingController();
-  TextEditingController stateController = TextEditingController();
+  String? selectedState; // Changed to handle dropdown value
   TextEditingController zipCodeController = TextEditingController();
+
+  List<String> states = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
+    'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 
+    'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 
+    'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 
+    'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 
+    'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 
+    'West Virginia', 'Wisconsin', 'Wyoming'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -70,12 +78,23 @@ class _Question5State extends State<Question5> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      TextField(
-                        controller: stateController,
+                      DropdownButtonFormField(
+                        value: selectedState,
                         decoration: InputDecoration(
                           labelText: 'State',
                           border: OutlineInputBorder(),
                         ),
+                        items: states.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedState = newValue;
+                          });
+                        },
                       ),
                       SizedBox(height: 10),
                       TextField(
@@ -96,20 +115,17 @@ class _Question5State extends State<Question5> {
                   onPressed: () {
                     if (addressController.text.isNotEmpty &&
                         cityController.text.isNotEmpty &&
-                        stateController.text.isNotEmpty &&
+                        selectedState != null &&
                         zipCodeController.text.isNotEmpty) {
                       print('Business Address: ${addressController.text}, '
-                          '${cityController.text}, ${stateController.text}, ${zipCodeController.text}');
-
-                      // Navigate to the next question (Question6)
+                          '${cityController.text}, $selectedState, ${zipCodeController.text}');
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Question6(), // Redirect to Question6
+                          builder: (context) => Question6(),
                         ),
                       );
                     } else {
-                      // Show a message if the address fields are not fully provided
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('Please enter your complete business address.'),
                       ));
@@ -148,13 +164,8 @@ class _Question5State extends State<Question5> {
 
   @override
   void dispose() {
-    // Dispose of the controllers when the widget is removed
     addressController.dispose();
     cityController.dispose();
-    stateController.dispose();
-    zipCodeController.dispose();
     super.dispose();
   }
 }
-
-

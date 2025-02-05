@@ -40,6 +40,44 @@ class _LicenseUploadPageState extends State<LicenseUploadPage> {
     }
   }
 
+  Widget _buildImageDisplay(File? imageFile, String title) {
+    return Container(
+      width: double.infinity,
+      height: 200,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: imageFile == null
+          ? Center(child: Text('No Image Selected', style: TextStyle(fontSize: 16)))
+          : Image.file(imageFile, fit: BoxFit.cover),
+    );
+  }
+
+  Widget _buildImagePickerButton(String title, bool isFront) {
+    return Column(
+      children: [
+        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: Icon(Icons.photo_library, color: Colors.blue),
+              onPressed: () => _pickImage(ImageSource.gallery, isFront),
+              tooltip: 'Pick from Gallery',
+            ),
+            IconButton(
+              icon: Icon(Icons.folder_open, color: Colors.green),
+              onPressed: () => _pickFile(isFront),
+              tooltip: 'Pick from File',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   void navigateToPayments() {
     if (_frontImage != null && _backImage != null) {
       Navigator.push(
@@ -56,56 +94,33 @@ class _LicenseUploadPageState extends State<LicenseUploadPage> {
     }
   }
 
-  Widget _buildImagePickerButton(String title, bool isFront) {
-    return Column(
-      children: [
-        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              icon: Icon(Icons.camera_alt),
-              onPressed: () => _pickImage(ImageSource.camera, isFront),
-            ),
-            IconButton(
-              icon: Icon(Icons.photo_library),
-              onPressed: () => _pickImage(ImageSource.gallery, isFront),
-            ),
-            IconButton(
-              icon: Icon(Icons.folder_open),
-              onPressed: () => _pickFile(isFront),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Upload Driving License'),
+        backgroundColor: const Color.fromARGB(255, 246, 125, 88),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              if (_frontImage != null)
-                Image.file(_frontImage!, width: 300, height: 180),
-              _buildImagePickerButton('Front of License', true),
-              SizedBox(height: 20),
-              if (_backImage != null)
-                Image.file(_backImage!, width: 300, height: 180),
-              _buildImagePickerButton('Back of License', false),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: navigateToPayments,
-                child: Text('Proceed to Payment'),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            _buildImageDisplay(_frontImage, 'Front of License'),
+            _buildImagePickerButton('Front of License', true),
+            SizedBox(height: 20),
+            _buildImageDisplay(_backImage, 'Back of License'),
+            _buildImagePickerButton('Back of License', false),
+            SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: navigateToPayments,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.green,
+                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
               ),
-            ],
-          ),
+              child: Text('Proceed to Payment'),
+            ),
+          ],
         ),
       ),
     );
