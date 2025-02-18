@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:http/http.dart' as http;
 
 class PaymentSuccessPage extends StatefulWidget {
   final String transactionId;
@@ -13,29 +16,73 @@ class PaymentSuccessPage extends StatefulWidget {
 class _PaymentSuccessPageState extends State<PaymentSuccessPage> {
   String? selectedReceiptMethod;
 
-  Future<void> _sendEmailReceipt(String email) async {
+Future<void> _sendEmailReceipt(String email) async {
+  try {
+    print("📩 Attempting to send email...");
+    print("📩 Email: $email");
+    print("📩 Transaction ID: ${widget.transactionId}");
+
+    final String url = "https://us-central1-tax-app-cf8c9.cloudfunctions.net/sendPaymentReceipt";
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        'email': email.trim(),
+        'transactionId': widget.transactionId.toString(),
+      }),
+    );
+
+    final responseData = jsonDecode(response.body);
+    print("📩 Response received: $responseData");
+
+    if (response.statusCode == 200 && responseData['success']) {
+      print("✅ Email sent successfully to $email");
+
+      setState(() {
+        selectedReceiptMethod = "Email ($email)";
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Your payment receipt has been sent to $email.')),
+      );
+    } else {
+      print("❌ Failed to send email. Error: ${responseData['message']}");
+      throw Exception(responseData['message']);
+    }
+  } catch (error) {
+    print("❌ Exception occurred: $error");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to send email: $error')),
+    );
+  }
+}
+
+
+
+  Future<void> _sendSmsReceipt(String phoneNumber) async {
     try {
       final HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable('sendPaymentReceipt');
+          FirebaseFunctions.instance.httpsCallable('sendPaymentReceiptSms');
       final response = await callable.call({
-        'email': email,
+        'phoneNumber': phoneNumber,
         'transactionId': widget.transactionId,
       });
 
       if (response.data['success']) {
         setState(() {
-          selectedReceiptMethod = "Email ($email)";
+          selectedReceiptMethod = "SMS ($phoneNumber)";
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Your payment receipt has been sent to $email.')),
+          SnackBar(content: Text('Your payment receipt has been sent to $phoneNumber.')),
         );
       } else {
         throw Exception(response.data['message']);
       }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send email: $error')),
+        SnackBar(content: Text('Failed to send SMS: $error')),
       );
     }
   }
@@ -69,6 +116,46 @@ class _PaymentSuccessPageState extends State<PaymentSuccessPage> {
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Please enter a valid email address.')),
+                  );
+                }
+              },
+              child: Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _askForPhoneNumber(BuildContext context) {
+    TextEditingController phoneController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter Your Phone Number'),
+          content: TextField(
+            controller: phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: InputDecoration(hintText: 'e.g., +1234567890'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                String phoneNumber = phoneController.text.trim();
+                if (phoneNumber.isNotEmpty && phoneNumber.length >= 10) {
+                  Navigator.of(context).pop();
+                  _sendSmsReceipt(phoneNumber);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please enter a valid phone number.')),
                   );
                 }
               },
@@ -120,9 +207,19 @@ class _PaymentSuccessPageState extends State<PaymentSuccessPage> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
               SizedBox(height: 15),
-              ElevatedButton(
-                onPressed: () => _askForEmail(context),
-                child: Text('Gmail'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _askForEmail(context),
+                    child: Text('Gmail'),
+                  ),
+                  SizedBox(width: 20),
+                  ElevatedButton(
+                    onPressed: () => _askForPhoneNumber(context),
+                    child: Text('SMS'),
+                  ),
+                ],
               ),
 
               if (selectedReceiptMethod != null) ...[
