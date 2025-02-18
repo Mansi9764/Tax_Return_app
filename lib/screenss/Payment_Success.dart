@@ -59,33 +59,47 @@ Future<void> _sendEmailReceipt(String email) async {
 }
 
 
+Future<void> _sendSmsReceipt(String phoneNumber) async {
+  try {
+    print("📲 Attempting to send SMS...");
+    print("📲 Phone Number: $phoneNumber");
+    print("📲 Transaction ID: ${widget.transactionId}");
 
-  Future<void> _sendSmsReceipt(String phoneNumber) async {
-    try {
-      final HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable('sendPaymentReceiptSms');
-      final response = await callable.call({
-        'phoneNumber': phoneNumber,
-        'transactionId': widget.transactionId,
+    final String url = "https://us-central1-tax-app-cf8c9.cloudfunctions.net/sendPaymentReceiptSms";
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        'phoneNumber': phoneNumber.trim(),
+        'transactionId': widget.transactionId.toString(),
+      }),
+    );
+
+    final responseData = jsonDecode(response.body);
+    print("📩 Response received: $responseData");
+
+    if (response.statusCode == 200 && responseData['success']) {
+      print("✅ SMS sent successfully to $phoneNumber");
+
+      setState(() {
+        selectedReceiptMethod = "SMS ($phoneNumber)";
       });
 
-      if (response.data['success']) {
-        setState(() {
-          selectedReceiptMethod = "SMS ($phoneNumber)";
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Your payment receipt has been sent to $phoneNumber.')),
-        );
-      } else {
-        throw Exception(response.data['message']);
-      }
-    } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send SMS: $error')),
+        SnackBar(content: Text('Your payment receipt has been sent to $phoneNumber.')),
       );
+    } else {
+      print("❌ Failed to send SMS. Error: ${responseData['message']}");
+      throw Exception(responseData['message']);
     }
+  } catch (error) {
+    print("❌ Exception occurred: $error");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to send SMS: $error')),
+    );
   }
+}
 
   void _askForEmail(BuildContext context) {
     TextEditingController emailController = TextEditingController();

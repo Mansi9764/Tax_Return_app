@@ -13,6 +13,24 @@ class _PackageSelectionScreenState extends State<PackageSelectionScreen> {
   // Track selected packages
   final Set<String> _selectedPackages = {};
   String? _selectedIndividualFiler; // To ensure only one individual filer package is selected
+  double _totalPrice = 0.0;
+
+    // Map of package names to their prices
+  final Map<String, double> _packagePrices = {
+    "Bronze - Individual Filer": 99.99,
+    "Silver - Individual Filer": 129.99,
+    "Gold - Individual Filer": 179.99,
+    "Business Filer": 395.99,
+  };
+
+
+   void _updateTotalPrice() {
+    setState(() {
+      _totalPrice = _selectedPackages.fold(
+          0.0, (sum, package) => sum + (_packagePrices[package] ?? 0.0));
+          print("Total Price: \$${_totalPrice.toStringAsFixed(2)}"); 
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +218,7 @@ class _PackageSelectionScreenState extends State<PackageSelectionScreen> {
                       _selectedPackages.add(packageKey);
                     }
                   }
+                  _updateTotalPrice();
                 });
               },
               style: ElevatedButton.styleFrom(

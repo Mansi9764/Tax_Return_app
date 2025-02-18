@@ -205,12 +205,12 @@ class _SignUpScreenState extends State<SignUpScreen>
         SizedBox(height: 10),
         _customTextField(
           controller: _otpController,
-          label: 'Enter OTP',
+          label: 'Enter Verification Code',
           icon: Icons.message,
           keyboardType: TextInputType.number,
         ),
         SizedBox(height: 10),
-        _customButton('Verify OTP', Colors.green, _verifyOtp),
+        _customButton('Verify Code', Colors.green, _verifyOtp),
       ],
     );
   }
@@ -224,7 +224,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   /// **📌 Send OTP Button**
   Widget _buildSendOtpButton() {
     return _customButton(
-        'Send OTP', const Color.fromARGB(255, 122, 187, 241), _getOtp);
+        'Send Verification Code', const Color.fromARGB(255, 122, 187, 241), _getOtp);
   }
 
   /// **📌 Sign Up Button**
@@ -312,7 +312,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   void _getOtp() {
     _auth.verifyPhoneNumber(
       phoneNumber: '+1${_phoneController.text.trim()}',
-      timeout: Duration(seconds: 60),
+      timeout: Duration(seconds: 120),
       verificationCompleted: (PhoneAuthCredential credential) async {
         await _auth.signInWithCredential(credential);
         setState(() {

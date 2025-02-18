@@ -94,7 +94,7 @@ class _PaymentPageState extends State<PaymentPage> {
     final Map<String, String> body = {
       'security_key': security_key,
       'type': 'sale',
-      'amount': '0.01',
+      'amount': '0.00',
       'ccnumber': cardNumber.replaceAll(' ', ''),
       'ccexp': expiryDate.replaceAll('/', ''),
       'cvv': cvvCode,
@@ -175,7 +175,7 @@ void handleError(String error) {
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => PaymentSuccessPage(transactionId: '123',),
+      builder: (context) => PaymentSuccessPage(transactionId: '1429374628',),
     ),
   );
 }
