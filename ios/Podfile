@@ -31,7 +31,9 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  
+  pod 'Firebase/Analytics', '11.7.0' # Set version manually
+  pod 'GoogleAppMeasurement', '11.7.0'
+  pod 'grpc', '~> 1.65.1'
   # pod 'GRPC-C++', '~> 1.28' 
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))

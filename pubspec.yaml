@@ -29,7 +29,7 @@ dependencies:
   cloud_firestore:
   firebase_auth_platform_interface:
   flutter_masked_text2:
-  
+  cloud_functions:
   
 
 
